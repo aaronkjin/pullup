@@ -1,0 +1,13 @@
+PRD.md
+
+# env vars
+.env
+
+# venv
+venv/
+
+# pycache
+__pycache__/
+
+# node_modules
+node_modules/
