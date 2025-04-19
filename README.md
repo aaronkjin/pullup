@@ -1,10 +1,21 @@
 # Pullup
 
-A mobile bulletin-board app for Stanford students to discover campus events and for student orgs to engage with the community.
+A mobile bulletin-board app for Stanford students to discover campus events.
 
 ## Overview
 
-Pullup is a specialized platform where only officially recognized Stanford student organizations can post event announcements. Undergraduate students can browse, upvote/downvote, and comment on events. The platform includes a "Top Events" archive and a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
+Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. Undergrad students can browse, upvote/downvote, and comment on events. It includes: a Top Events archive + a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
+
+## Progress
+
+- Event feed w/ public + private events
+- Event details w/ upvote/downvote functionality
+- Commenting system
+- Virtual QR wristband system for private events
+- Top Events ranking
+- Event creation for orgs
+- User profiles
+- Mock API services (no real backend integration yet)
 
 ## Repo Structure
 
@@ -51,15 +62,9 @@ Mobile App:
 - Android Studio (for Android)
 - CocoaPods (for iOS dependencies)
 
-Backend:
-
-- Python 3.10+
-- PostgreSQL 14+
-- AWS (for RDS, S3)
-
 ## Getting Started
 
-Mobile App:
+For the MVP, we're focusing on the mobile app. The backend will be implemented in the next phase.
 
 ```bash
 # go to directory
@@ -89,28 +94,26 @@ npm run android
 yarn android
 ```
 
-Backend:
+## MVP Limitations
 
-```bash
-# go to directory
-cd backend
+This MVP has the following limitations:
 
-# create virtual env
-python -m venv venv
-source venv/bin/activate
+- Uses mock data instead of real API calls
+- No authentication system yet
+- No real image uploads
+- Limited error handling
+- No persistent state (refreshing the app resets everything)
+- QR code scanning is simulated
 
-# install dependencies
-pip install -r requirements.txt
+## Next Steps
 
-# set up env vars
-cp .env.example .env  # let's edit .env later w/ our config
-
-# run database migrations
-alembic upgrade head
-
-# start dev server
-uvicorn app.main:app --reload
-```
+- Implement the backend with FastAPI
+- Add Stanford CAS OAuth authentication
+- Implement real API calls
+- Add image upload functionality
+- Implement real-time notifications
+- Add better error handling and network state management
+- Improve UI/UX based on user feedback
 
 ## Developers
 
@@ -119,3 +122,5 @@ uvicorn app.main:app --reload
 [Ina Chun](https://github.com/ikc2210)
 
 [Andrew Chung](https://github.com/awchung04)
+
+mkdir -p docs mobile/src/api mobile/src/assets mobile/src/components mobile/src/contexts mobile/src/hooks mobile/src/navigation mobile/src/screens mobile/src/services mobile/src/store mobile/src/types mobile/src/utils mobile/**tests** backend/app/api backend/app/core backend/app/db backend/app/services backend/app/utils backend/tests backend/scripts scripts
