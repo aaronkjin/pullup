@@ -94,7 +94,7 @@ npm run android
 yarn android
 ```
 
-## Limitations + Next Steps:
+## Notes:
 
 Limitations:
 
