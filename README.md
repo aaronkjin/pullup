@@ -10,35 +10,32 @@ Pullup is a specialized platform where only officially recognized Stanford stude
 
 ```
 pullup/
-├── mobile/              # React Native mobile application
-│   ├── android/         # Android-specific files
-│   ├── ios/             # iOS-specific files
-│   ├── src/             # Cross-platform TypeScript code
+├── mobile/              # RN mobile app
+│   ├── android/         # Android-specific
+│   ├── ios/             # iOS-specific
+│   ├── src/             # Cross-platform TS code
 │   │   ├── api/         # API client code
 │   │   ├── assets/      # Static assets
 │   │   ├── components/  # Reusable UI components
 │   │   ├── contexts/    # React contexts
 │   │   ├── hooks/       # Custom React hooks
-│   │   ├── navigation/  # Navigation configuration
+│   │   ├── navigation/  # Nav config
 │   │   ├── screens/     # Screen components
 │   │   ├── services/    # Business logic
 │   │   ├── store/       # State management
-│   │   ├── types/       # TypeScript type definitions
-│   │   └── utils/       # Utility functions
+│   │   ├── types/       # TypeScript type defs
+│   │   └── utils/       # Utility funcs
 │   └── __tests__/       # Test files
 │
 ├── backend/             # Python FastAPI backend
-│   ├── app/             # Application code
+│   ├── app/             # App code
 │   │   ├── api/         # API endpoints
-│   │   ├── core/        # Core functionality
-│   │   ├── db/          # Database models and migrations
+│   │   ├── core/        # Core func
+│   │   ├── db/          # Database models, migrations
 │   │   ├── services/    # Business logic services
-│   │   └── utils/       # Utility functions
+│   │   └── utils/       # Utility funcs
 │   ├── tests/           # Test files
 │   └── scripts/         # Utility scripts
-│
-├── docs/                # Documentation
-│   └── PULLUP_PRD.md    # Product Requirements Document
 │
 └── scripts/             # Project-wide scripts
 ```
