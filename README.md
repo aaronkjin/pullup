@@ -122,5 +122,3 @@ Next Steps:
 [Ina Chun](https://github.com/ikc2210)
 
 [Andrew Chung](https://github.com/awchung04)
-
-mkdir -p docs mobile/src/api mobile/src/assets mobile/src/components mobile/src/contexts mobile/src/hooks mobile/src/navigation mobile/src/screens mobile/src/services mobile/src/store mobile/src/types mobile/src/utils mobile/**tests** backend/app/api backend/app/core backend/app/db backend/app/services backend/app/utils backend/tests backend/scripts scripts
