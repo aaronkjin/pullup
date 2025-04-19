@@ -72,26 +72,9 @@ cd mobile
 
 # install dependencies
 npm install
-# or
-yarn install
 
-# install iOS dependencies
-cd ios && pod install && cd ..
-
-# start Metro bundler
+# run app
 npm start
-# or
-yarn start
-
-# run on iOS
-npm run ios
-# or
-yarn ios
-
-# run on Android
-npm run android
-# or
-yarn android
 ```
 
 ## Notes:
