@@ -94,9 +94,9 @@ npm run android
 yarn android
 ```
 
-## MVP Limitations
+## Limitations + Next Steps:
 
-This MVP has the following limitations:
+Limitations:
 
 - Uses mock data instead of real API calls
 - No authentication system yet
@@ -105,14 +105,14 @@ This MVP has the following limitations:
 - No persistent state (refreshing the app resets everything)
 - QR code scanning is simulated
 
-## Next Steps
+Next Steps:
 
-- Implement the backend with FastAPI
-- Add Stanford CAS OAuth authentication
+- Implement the backend w/ FastAPI
+- Add Stanford CAS OAuth auth
 - Implement real API calls
-- Add image upload functionality
-- Implement real-time notifications
-- Add better error handling and network state management
+- Add image upload func
+- Implement real-time notifs
+- Add better error handling + network state management
 - Improve UI/UX based on user feedback
 
 ## Developers
