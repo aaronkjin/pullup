@@ -10,34 +10,34 @@ Pullup is a platform where only officially recognized Stanford student orgs can 
 
 ```
 pullup/
-├── mobile/              # RN mobile app
-│   ├── android/         # Android-specific
-│   ├── ios/             # iOS-specific
-│   ├── src/             # Cross-platform TS code
-│   │   ├── api/         # API client code
-│   │   ├── assets/      # Static assets
-│   │   ├── components/  # Reusable UI components
-│   │   ├── contexts/    # React contexts
-│   │   ├── hooks/       # Custom React hooks
-│   │   ├── navigation/  # Nav config
-│   │   ├── screens/     # Screen components
-│   │   ├── services/    # Business logic
-│   │   ├── store/       # State management
-│   │   ├── types/       # TypeScript type defs
-│   │   └── utils/       # Utility funcs
-│   └── __tests__/       # Test files
+├── mobile/                 # RN mobile app
+│   ├── android/            # Android-specific
+│   ├── ios/                # iOS-specific
+│   ├── src/                # Cross-platform TS code
+│   │   ├── api/            # API client code
+│   │   ├── assets/         # Static assets
+│   │   ├── components/     # Reusable UI components
+│   │   ├── contexts/       # React contexts
+│   │   ├── hooks/          # Custom React hooks
+│   │   ├── navigation/     # Nav config
+│   │   ├── screens/        # Screen components
+│   │   ├── services/       # Business logic
+│   │   ├── store/          # State management
+│   │   ├── types/          # TypeScript type defs
+│   │   └── utils/          # Utility funcs
+│   └── __tests__/          # Test files
 │
-├── backend/             # Python FastAPI backend
-│   ├── app/             # App code
-│   │   ├── api/         # API endpoints
-│   │   ├── core/        # Core func
-│   │   ├── db/          # Database models, migrations
-│   │   ├── services/    # Business logic services
-│   │   └── utils/       # Utility funcs
-│   ├── tests/           # Test files
-│   └── scripts/         # Utility scripts
+├── backend/                # Python FastAPI backend
+│   ├── app/                # App code
+│   │   ├── api/            # API endpoints
+│   │   ├── core/           # Core func
+│   │   ├── db/             # Database models, migrations
+│   │   ├── services/       # Business logic services
+│   │   └── utils/          # Utility funcs
+│   ├── tests/              # Test files
+│   └── scripts/            # Utility scripts
 │
-└── scripts/             # Project-wide scripts
+└── scripts/                # Project-wide scripts
 ```
 
 ## Prerequisites
