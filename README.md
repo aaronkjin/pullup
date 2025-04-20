@@ -6,17 +6,6 @@ A mobile bulletin-board app for Stanford students to discover campus events.
 
 Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. Undergrad students can browse, upvote/downvote, and comment on events. It includes: a Top Events archive + a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
 
-## Progress
-
-- Event feed w/ public + private events
-- Event details w/ upvote/downvote functionality
-- Commenting system
-- Virtual QR wristband system for private events
-- Top Events ranking
-- Event creation for orgs
-- User profiles
-- Mock API services (no real backend integration yet)
-
 ## Repo Structure
 
 ```
@@ -58,9 +47,6 @@ Mobile App:
 - Node.js 18+
 - npm or yarn
 - React Native CLI
-- Xcode (for iOS)
-- Android Studio (for Android)
-- CocoaPods (for iOS dependencies)
 
 ## Getting Started
 
@@ -76,6 +62,17 @@ npm install
 # run app
 npm start
 ```
+
+## Progress
+
+- Event feed w/ public + private events
+- Event details w/ upvote/downvote functionality
+- Commenting system
+- Virtual QR wristband system for private events
+- Top Events ranking
+- Event creation for orgs
+- User profiles
+- Mock API services (no real backend integration yet)
 
 ## Notes:
 
