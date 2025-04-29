@@ -6,7 +6,7 @@ import { Provider as PaperProvider } from "react-native-paper";
 import AppNavigator from "./src/navigation";
 import { theme } from "./src/utils/theme";
 
-// Ignore specific warnings for demo
+// Ignore warnings below for MVP
 LogBox.ignoreLogs([
   "Reanimated 2",
   "AsyncStorage",
