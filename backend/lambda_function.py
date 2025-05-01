@@ -101,8 +101,8 @@ def lambda_handler(event, context):
                 return delete_event(event_id)
     
     # Handle student-event operations
-    elif path.startswith('/students-events'):
-        if path == '/students-events':
+    elif path.startswith('/student-events'):
+        if path == '/student-events':
             if http_method == 'GET':
                 return get_all_student_events()
             elif http_method == 'POST':
