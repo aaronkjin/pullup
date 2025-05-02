@@ -1,0 +1,32 @@
+-- Students table
+CREATE TABLE Students (
+    student_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Organizations table
+CREATE TABLE Orgs (
+    org_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT
+);
+
+-- Events table
+CREATE TABLE Events (
+    event_id SERIAL PRIMARY KEY,
+    org_id INTEGER NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    time_location VARCHAR(200) NOT NULL,
+    description TEXT,
+    FOREIGN KEY (org_id) REFERENCES Orgs(org_id)
+);
+
+-- Junction table for Students and Events (many-to-many relationship)
+CREATE TABLE Students_Events (
+    student_id INTEGER NOT NULL,
+    event_id INTEGER NOT NULL,
+    PRIMARY KEY (student_id, event_id),
+    FOREIGN KEY (student_id) REFERENCES Students(student_id),
+    FOREIGN KEY (event_id) REFERENCES Events(event_id)
+);
