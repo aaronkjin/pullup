@@ -16,6 +16,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import QRWristbandScreen from "../screens/QRWristbandScreen";
 import ScanQRScreen from "../screens/ScanQRScreen";
 import TopEventsScreen from "../screens/TopEventsScreen";
+import ApiTestScreen from "../screens/ApiTestScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -130,6 +131,11 @@ const AppNavigator = () => {
           name="QRWristband"
           component={QRWristbandScreen}
           options={{ title: "Event Wristband" }}
+        />
+        <Stack.Screen
+          name="ApiTest"
+          component={ApiTestScreen}
+          options={{ title: "API Test Utility" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

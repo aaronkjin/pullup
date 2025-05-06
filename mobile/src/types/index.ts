@@ -52,4 +52,5 @@ export type RootStackParamList = {
   Profile: undefined;
   QRWristband: { eventId: string };
   ScanQR: undefined;
+  ApiTest: undefined;
 }; 

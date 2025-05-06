@@ -1,26 +1,40 @@
-import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Image, 
-  TouchableOpacity, 
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  FlatList
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+  FlatList,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-import { COLORS, SPACING, FONT } from '../utils/theme';
-import { mockUsers, mockEvents } from '../services/mockData';
+import { RootStackParamList } from "../types";
+import { COLORS, SPACING, FONT } from "../utils/theme";
+import { mockUsers, mockEvents } from "../services/mockData";
+
+type ProfileScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Profile"
+>;
 
 // For demo, we're using the first user from mock data
 const currentUser = mockUsers[0];
 
 // For demo, get events saved by the user
-const savedEvents = mockEvents.filter(event => event.saved);
+const savedEvents = mockEvents.filter((event) => event.saved);
 
 const ProfileScreen = () => {
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
+
+  const handleApiTestPress = () => {
+    navigation.navigate("ApiTest");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -28,16 +42,20 @@ const ProfileScreen = () => {
         <View style={styles.header}>
           <Text style={styles.screenTitle}>Profile</Text>
         </View>
-        
+
         {/* Profile Info */}
         <View style={styles.profileSection}>
-          <Image 
-            source={{ uri: currentUser.profileImageUrl || 'https://randomuser.me/api/portraits/lego/1.jpg' }} 
-            style={styles.profileImage} 
+          <Image
+            source={{
+              uri:
+                currentUser.profileImageUrl ||
+                "https://randomuser.me/api/portraits/lego/1.jpg",
+            }}
+            style={styles.profileImage}
           />
           <Text style={styles.displayName}>{currentUser.displayName}</Text>
           <Text style={styles.username}>@{currentUser.username}</Text>
-          
+
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>15</Text>
@@ -55,11 +73,11 @@ const ProfileScreen = () => {
             </View>
           </View>
         </View>
-        
+
         {/* Saved Events */}
         <View style={styles.savedEventsSection}>
           <Text style={styles.sectionTitle}>Saved Events</Text>
-          
+
           {savedEvents.length > 0 ? (
             <FlatList
               data={savedEvents}
@@ -68,16 +86,18 @@ const ProfileScreen = () => {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <View style={styles.savedEventCard}>
-                  <Image 
-                    source={{ uri: item.imageUrl }} 
-                    style={styles.savedEventImage} 
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.savedEventImage}
                   />
                   <View style={styles.savedEventInfo}>
-                    <Text style={styles.savedEventTitle} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.savedEventTitle} numberOfLines={1}>
+                      {item.title}
+                    </Text>
                     <Text style={styles.savedEventDate} numberOfLines={1}>
-                      {new Date(item.dateTime).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric' 
+                      {new Date(item.dateTime).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
                       })}
                     </Text>
                   </View>
@@ -92,42 +112,71 @@ const ProfileScreen = () => {
             <Text style={styles.emptyText}>No saved events yet</Text>
           )}
         </View>
-        
+
         {/* Settings Section */}
         <View style={styles.settingsSection}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <Icon name="person-outline" size={24} color={COLORS.text} />
             <Text style={styles.settingText}>Edit Profile</Text>
-            <Icon name="chevron-forward" size={20} color={COLORS.secondaryText} />
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={COLORS.secondaryText}
+            />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <Icon name="notifications-outline" size={24} color={COLORS.text} />
             <Text style={styles.settingText}>Notifications</Text>
-            <Icon name="chevron-forward" size={20} color={COLORS.secondaryText} />
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={COLORS.secondaryText}
+            />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <Icon name="shield-outline" size={24} color={COLORS.text} />
             <Text style={styles.settingText}>Privacy</Text>
-            <Icon name="chevron-forward" size={20} color={COLORS.secondaryText} />
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={COLORS.secondaryText}
+            />
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.settingItem}>
             <Icon name="help-circle-outline" size={24} color={COLORS.text} />
             <Text style={styles.settingText}>Help & Support</Text>
-            <Icon name="chevron-forward" size={20} color={COLORS.secondaryText} />
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={COLORS.secondaryText}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleApiTestPress}
+          >
+            <Icon name="server-outline" size={24} color={COLORS.text} />
+            <Text style={styles.settingText}>API Test Utility</Text>
+            <Icon
+              name="chevron-forward"
+              size={20}
+              color={COLORS.secondaryText}
+            />
           </TouchableOpacity>
         </View>
-        
+
         {/* Sign Out Button */}
         <TouchableOpacity style={styles.signOutButton}>
           <Icon name="log-out-outline" size={20} color={COLORS.error} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
-        
+
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={styles.appVersion}>Pullup v0.1.0</Text>
@@ -153,12 +202,12 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     fontSize: FONT.sizes.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
-    textAlign: 'center',
+    textAlign: "center",
   },
   profileSection: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: SPACING.l,
     backgroundColor: COLORS.card,
   },
@@ -170,7 +219,7 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontSize: FONT.sizes.xl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
@@ -180,19 +229,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.m,
   },
   statsContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-around",
     paddingVertical: SPACING.m,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: FONT.sizes.l,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   statLabel: {
@@ -202,7 +251,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: '100%',
+    height: "100%",
     backgroundColor: COLORS.border,
   },
   savedEventsSection: {
@@ -214,7 +263,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: FONT.sizes.l,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     marginBottom: SPACING.m,
   },
@@ -226,15 +275,15 @@ const styles = StyleSheet.create({
     marginRight: SPACING.m,
     backgroundColor: COLORS.background,
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   savedEventImage: {
-    width: '100%',
+    width: "100%",
     height: 100,
   },
   savedEventInfo: {
@@ -242,7 +291,7 @@ const styles = StyleSheet.create({
   },
   savedEventTitle: {
     fontSize: FONT.sizes.s,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginBottom: 2,
   },
@@ -251,7 +300,7 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryText,
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     color: COLORS.secondaryText,
     fontSize: FONT.sizes.s,
     paddingVertical: SPACING.m,
@@ -263,8 +312,8 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.m,
   },
   settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: SPACING.m,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -276,10 +325,10 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.m,
   },
   signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF",
     marginHorizontal: SPACING.l,
     marginTop: SPACING.l,
     paddingVertical: SPACING.m,
@@ -290,11 +339,11 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: FONT.sizes.m,
     color: COLORS.error,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: SPACING.xs,
   },
   appInfo: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: SPACING.l,
   },
   appVersion: {
@@ -303,4 +352,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfileScreen; 
+export default ProfileScreen;
