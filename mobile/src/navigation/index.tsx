@@ -30,12 +30,17 @@ const MainTabNavigator = () => {
         tabBarStyle: {
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
-          paddingBottom: 5,
-          height: 60,
+          paddingBottom: 8,
+          height: 80,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "500",
+          paddingBottom: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: -8,
         },
       }}
     >

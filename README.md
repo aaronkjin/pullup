@@ -6,40 +6,6 @@ A mobile bulletin-board app for Stanford students to discover campus events.
 
 Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. Undergrad students can browse, upvote/downvote, and comment on events. It includes: a Top Events archive + a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
 
-## Repo Structure
-
-```
-pullup/
-├── mobile/                 # RN mobile app
-│   ├── android/            # Android-specific
-│   ├── ios/                # iOS-specific
-│   ├── src/                # Cross-platform TS code
-│   │   ├── api/            # API client code
-│   │   ├── assets/         # Static assets
-│   │   ├── components/     # Reusable UI components
-│   │   ├── contexts/       # React contexts
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── navigation/     # Nav config
-│   │   ├── screens/        # Screen components
-│   │   ├── services/       # Business logic
-│   │   ├── store/          # State management
-│   │   ├── types/          # TypeScript type defs
-│   │   └── utils/          # Utility funcs
-│   └── __tests__/          # Test files
-│
-├── backend/                # Python FastAPI backend
-│   ├── app/                # App code
-│   │   ├── api/            # API endpoints
-│   │   ├── core/           # Core func
-│   │   ├── db/             # Database models, migrations
-│   │   ├── services/       # Business logic services
-│   │   └── utils/          # Utility funcs
-│   ├── tests/              # Test files
-│   └── scripts/            # Utility scripts
-│
-└── scripts/                # Project-wide scripts
-```
-
 ## Prerequisites
 
 Mobile App:
