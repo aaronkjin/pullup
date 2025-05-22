@@ -4,7 +4,7 @@ A mobile bulletin-board app for Stanford students to discover campus events.
 
 ## Overview
 
-Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. Undergrad students can browse, upvote/downvote, and comment on events. It includes: a Top Events archive + a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
+Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. Undergrad students can browse, like, and comment on events. It includes: a Top Events archive + a virtual wristband system (QR codes tied to SUNet IDs) for private/invite-only event check-ins.
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ npm start
 ## Progress
 
 - Event feed w/ public + private events
-- Event details w/ upvote/downvote functionality
+- Event details w/ like functionality
 - Commenting system
 - Virtual QR wristband system for private events
 - Top Events ranking
