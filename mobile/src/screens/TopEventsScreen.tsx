@@ -35,8 +35,8 @@ const TopEventsScreen = () => {
       // In real app, we would pass the time filter to the API
       const allEvents = await EventApi.getEvents();
 
-      // Sort by upvotes for this demo
-      const sortedEvents = [...allEvents].sort((a, b) => b.upvotes - a.upvotes);
+      // Sort by likes for this demo
+      const sortedEvents = [...allEvents].sort((a, b) => b.likes - a.likes);
       setEvents(sortedEvents);
     } catch (error) {
       console.error("Failed to fetch top events:", error);
@@ -45,33 +45,15 @@ const TopEventsScreen = () => {
     }
   };
 
-  // Handle upvote
-  const handleUpvote = async (
-    eventId: string,
-    currentVote: "up" | "down" | null
-  ) => {
+  // Handle like
+  const handleLike = async (eventId: string) => {
     try {
-      const updatedEvent = await EventApi.toggleUpvote(eventId, currentVote);
+      const updatedEvent = await EventApi.toggleLike(eventId);
       setEvents(
         events.map((event) => (event.id === eventId ? updatedEvent : event))
       );
     } catch (error) {
-      console.error("Failed to upvote:", error);
-    }
-  };
-
-  // Handle downvote
-  const handleDownvote = async (
-    eventId: string,
-    currentVote: "up" | "down" | null
-  ) => {
-    try {
-      const updatedEvent = await EventApi.toggleDownvote(eventId, currentVote);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
-      );
-    } catch (error) {
-      console.error("Failed to downvote:", error);
+      console.error("Failed to like:", error);
     }
   };
 
@@ -171,8 +153,7 @@ const TopEventsScreen = () => {
               <EventCard
                 event={item}
                 onPress={handleEventPress}
-                onUpvote={handleUpvote}
-                onDownvote={handleDownvote}
+                onLike={handleLike}
                 onSave={handleSave}
               />
             </View>

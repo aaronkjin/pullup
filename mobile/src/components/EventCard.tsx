@@ -14,8 +14,7 @@ import { COLORS, SPACING, FONT } from "../utils/theme";
 interface EventCardProps {
   event: Event;
   onPress: (eventId: string) => void;
-  onUpvote: (eventId: string, currentVote: "up" | "down" | null) => void;
-  onDownvote: (eventId: string, currentVote: "up" | "down" | null) => void;
+  onLike: (eventId: string) => void;
   onSave: (eventId: string) => void;
 }
 
@@ -24,8 +23,7 @@ const { width } = Dimensions.get("window");
 const EventCard: React.FC<EventCardProps> = ({
   event,
   onPress,
-  onUpvote,
-  onDownvote,
+  onLike,
   onSave,
 }) => {
   // Format date
@@ -97,55 +95,20 @@ const EventCard: React.FC<EventCardProps> = ({
 
         {/* Action buttons */}
         <View style={styles.actionsContainer}>
-          {/* Upvote */}
+          {/* Like */}
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => onUpvote(event.id, event.userVote)}
+            onPress={() => onLike(event.id)}
           >
             <Ionicons
-              name={
-                event.userVote === "up"
-                  ? "arrow-up-circle"
-                  : "arrow-up-circle-outline"
-              }
+              name={event.userLiked ? "heart" : "heart-outline"}
               size={24}
-              color={
-                event.userVote === "up" ? COLORS.primary : COLORS.secondaryText
-              }
+              color={event.userLiked ? COLORS.primary : COLORS.secondaryText}
             />
             <Text
-              style={[
-                styles.actionText,
-                event.userVote === "up" && styles.activeText,
-              ]}
+              style={[styles.actionText, event.userLiked && styles.activeText]}
             >
-              {event.upvotes}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Downvote */}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => onDownvote(event.id, event.userVote)}
-          >
-            <Ionicons
-              name={
-                event.userVote === "down"
-                  ? "arrow-down-circle"
-                  : "arrow-down-circle-outline"
-              }
-              size={24}
-              color={
-                event.userVote === "down" ? COLORS.error : COLORS.secondaryText
-              }
-            />
-            <Text
-              style={[
-                styles.actionText,
-                event.userVote === "down" && styles.errorText,
-              ]}
-            >
-              {event.downvotes}
+              {event.likes}
             </Text>
           </TouchableOpacity>
 
@@ -281,6 +244,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: SPACING.xs,
+    marginRight: SPACING.l,
   },
   actionText: {
     fontSize: FONT.sizes.s,
@@ -291,12 +255,9 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: "500",
   },
-  errorText: {
-    color: COLORS.error,
-    fontWeight: "500",
-  },
   saveButton: {
     marginLeft: "auto",
+    marginRight: 0,
   },
 });
 

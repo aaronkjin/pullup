@@ -18,50 +18,25 @@ export const EventApi = {
     return event || null;
   },
 
-  // Toggle upvote for an event
-  toggleUpvote: async (id: string, currentVote: 'up' | 'down' | null): Promise<Event> => {
+  // Toggle like for an event
+  toggleLike: async (id: string): Promise<Event> => {
     await delay(200);
     const eventIndex = mockEvents.findIndex(event => event.id === id);
     if (eventIndex === -1) throw new Error('Event not found');
     
     const event = {...mockEvents[eventIndex]};
     
-    // Update vote counts based on current state
-    if (currentVote === 'up') {
-      event.upvotes--;
-      event.userVote = null;
-    } else if (currentVote === 'down') {
-      event.downvotes--;
-      event.upvotes++;
-      event.userVote = 'up';
+    // Toggle like status
+    if (event.userLiked) {
+      event.likes--;
+      event.userLiked = false;
     } else {
-      event.upvotes++;
-      event.userVote = 'up';
+      event.likes++;
+      event.userLiked = true;
     }
     
-    return event;
-  },
-
-  // Toggle downvote for an event
-  toggleDownvote: async (id: string, currentVote: 'up' | 'down' | null): Promise<Event> => {
-    await delay(200);
-    const eventIndex = mockEvents.findIndex(event => event.id === id);
-    if (eventIndex === -1) throw new Error('Event not found');
-    
-    const event = {...mockEvents[eventIndex]};
-    
-    // Update vote counts based on current state
-    if (currentVote === 'down') {
-      event.downvotes--;
-      event.userVote = null;
-    } else if (currentVote === 'up') {
-      event.upvotes--;
-      event.downvotes++;
-      event.userVote = 'down';
-    } else {
-      event.downvotes++;
-      event.userVote = 'down';
-    }
+    // Update the source data so changes persist
+    mockEvents[eventIndex] = event;
     
     return event;
   },
@@ -75,18 +50,20 @@ export const EventApi = {
     const event = {...mockEvents[eventIndex]};
     event.saved = !event.saved;
     
+    // Update the source data so changes persist
+    mockEvents[eventIndex] = event;
+    
     return event;
   },
 
   // Create a new event (for organization users)
-  createEvent: async (eventData: Omit<Event, 'id' | 'upvotes' | 'downvotes' | 'userVote' | 'saved'>): Promise<Event> => {
+  createEvent: async (eventData: Omit<Event, 'id' | 'likes' | 'userLiked' | 'saved'>): Promise<Event> => {
     await delay(800);
     const newEvent: Event = {
       ...eventData,
       id: `event${mockEvents.length + 1}`,
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
+      likes: 0,
+      userLiked: false,
       saved: false,
     };
     
@@ -116,12 +93,36 @@ export const CommentApi = {
       userImageUrl: currentUser.profileImageUrl,
       text,
       createdAt: new Date().toISOString(),
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
+      likes: 0,
+      userLiked: false,
     };
     
     return newComment;
+  },
+
+  // Toggle like for a comment
+  toggleCommentLike: async (commentId: string): Promise<Comment> => {
+    await delay(200);
+    
+    // Find the comment in mockComments and update it
+    const commentIndex = mockComments.findIndex(comment => comment.id === commentId);
+    if (commentIndex === -1) throw new Error('Comment not found');
+    
+    const comment = {...mockComments[commentIndex]};
+    
+    // Toggle like status
+    if (comment.userLiked) {
+      comment.likes--;
+      comment.userLiked = false;
+    } else {
+      comment.likes++;
+      comment.userLiked = true;
+    }
+    
+    // Update the source data so changes persist
+    mockComments[commentIndex] = comment;
+    
+    return comment;
   },
 };
 

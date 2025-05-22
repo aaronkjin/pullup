@@ -6,15 +6,10 @@ import { COLORS, SPACING, FONT } from "../utils/theme";
 
 interface CommentItemProps {
   comment: Comment;
-  onUpvote: (commentId: string, currentVote: "up" | "down" | null) => void;
-  onDownvote: (commentId: string, currentVote: "up" | "down" | null) => void;
+  onLike: (commentId: string) => void;
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({
-  comment,
-  onUpvote,
-  onDownvote,
-}) => {
+const CommentItem: React.FC<CommentItemProps> = ({ comment, onLike }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -55,51 +50,17 @@ const CommentItem: React.FC<CommentItemProps> = ({
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => onUpvote(comment.id, comment.userVote)}
+          onPress={() => onLike(comment.id)}
         >
           <Ionicons
-            name={
-              comment.userVote === "up"
-                ? "arrow-up-circle"
-                : "arrow-up-circle-outline"
-            }
+            name={comment.userLiked ? "heart" : "heart-outline"}
             size={18}
-            color={
-              comment.userVote === "up" ? COLORS.primary : COLORS.secondaryText
-            }
+            color={comment.userLiked ? COLORS.primary : COLORS.secondaryText}
           />
           <Text
-            style={[
-              styles.actionText,
-              comment.userVote === "up" && styles.activeText,
-            ]}
+            style={[styles.actionText, comment.userLiked && styles.activeText]}
           >
-            {comment.upvotes}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => onDownvote(comment.id, comment.userVote)}
-        >
-          <Ionicons
-            name={
-              comment.userVote === "down"
-                ? "arrow-down-circle"
-                : "arrow-down-circle-outline"
-            }
-            size={18}
-            color={
-              comment.userVote === "down" ? COLORS.error : COLORS.secondaryText
-            }
-          />
-          <Text
-            style={[
-              styles.actionText,
-              comment.userVote === "down" && styles.errorText,
-            ]}
-          >
-            {comment.downvotes}
+            {comment.likes}
           </Text>
         </TouchableOpacity>
 
@@ -168,9 +129,6 @@ const styles = StyleSheet.create({
   },
   activeText: {
     color: COLORS.primary,
-  },
-  errorText: {
-    color: COLORS.error,
   },
 });
 

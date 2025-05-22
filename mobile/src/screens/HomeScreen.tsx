@@ -51,33 +51,15 @@ const HomeScreen = () => {
     setRefreshing(false);
   };
 
-  // Handle upvote
-  const handleUpvote = async (
-    eventId: string,
-    currentVote: "up" | "down" | null
-  ) => {
+  // Handle like
+  const handleLike = async (eventId: string) => {
     try {
-      const updatedEvent = await EventApi.toggleUpvote(eventId, currentVote);
+      const updatedEvent = await EventApi.toggleLike(eventId);
       setEvents(
         events.map((event) => (event.id === eventId ? updatedEvent : event))
       );
     } catch (error) {
-      console.error("Failed to upvote:", error);
-    }
-  };
-
-  // Handle downvote
-  const handleDownvote = async (
-    eventId: string,
-    currentVote: "up" | "down" | null
-  ) => {
-    try {
-      const updatedEvent = await EventApi.toggleDownvote(eventId, currentVote);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
-      );
-    } catch (error) {
-      console.error("Failed to downvote:", error);
+      console.error("Failed to like:", error);
     }
   };
 
@@ -183,8 +165,7 @@ const HomeScreen = () => {
             <EventCard
               event={item}
               onPress={handleEventPress}
-              onUpvote={handleUpvote}
-              onDownvote={handleDownvote}
+              onLike={handleLike}
               onSave={handleSave}
             />
           )}

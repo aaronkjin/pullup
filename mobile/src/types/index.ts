@@ -18,9 +18,8 @@ export interface Event {
   imageUrl?: string;
   category: string;
   isPrivate: boolean;
-  upvotes: number;
-  downvotes: number;
-  userVote: 'up' | 'down' | null;
+  likes: number;
+  userLiked: boolean;
   saved: boolean;
 }
 
@@ -32,9 +31,8 @@ export interface Comment {
   userImageUrl?: string;
   text: string;
   createdAt: string;
-  upvotes: number;
-  downvotes: number;
-  userVote: 'up' | 'down' | null;
+  likes: number;
+  userLiked: boolean;
 }
 
 export interface QRWristband {
