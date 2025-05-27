@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { RootStackParamList, Event } from "../types";
-import { EventApi } from "../services/api";
+import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 

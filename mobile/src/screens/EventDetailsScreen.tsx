@@ -15,7 +15,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Icon from "react-native-vector-icons/Ionicons";
 
 import { RootStackParamList, Event, Comment } from "../types";
-import { EventApi, CommentApi } from "../services/api";
+import { EventApi, CommentApi } from "../services/apiProvider";
 import CommentItem from "../components/CommentItem";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
@@ -44,7 +44,7 @@ const EventDetailsScreen = () => {
       const eventData = await EventApi.getEventById(eventId);
       setEvent(eventData);
 
-      // Set the header title
+      // Set header title
       if (eventData) {
         navigation.setOptions({
           title: eventData.title,
@@ -263,7 +263,8 @@ const EventDetailsScreen = () => {
 
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => {}} // In a real app, this would share the event
+                // TODO: Need to share event here
+                onPress={() => {}}
               >
                 <Icon
                   name="share-social-outline"

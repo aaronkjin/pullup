@@ -1,107 +1,119 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TextInput, 
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
   Switch,
   ActivityIndicator,
-  Alert
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
+  Alert,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Ionicons";
 
-import { EventApi } from '../services/api';
-import { COLORS, SPACING, FONT } from '../utils/theme';
+import { EventApi } from "../services/apiProvider";
+import { COLORS, SPACING, FONT } from "../utils/theme";
 
 const CreateEventScreen = () => {
   const navigation = useNavigation();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [location, setLocation] = useState('');
-  const [dateTime, setDateTime] = useState('');
-  const [category, setCategory] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [dateTime, setDateTime] = useState("");
+  const [category, setCategory] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Categories for selection
   const categories = [
-    'Food', 'Music', 'Academic', 'Social', 'Recreation', 'Sports', 'Arts', 'Technology', 'Other'
+    "Food",
+    "Music",
+    "Academic",
+    "Social",
+    "Recreation",
+    "Sports",
+    "Arts",
+    "Technology",
+    "Other",
   ];
-  
+
   // Handle category selection
   const handleCategorySelect = (selectedCategory: string) => {
     setCategory(selectedCategory);
   };
-  
+
   // Handle create event
   const handleCreateEvent = async () => {
-    // Simple validation
     if (!title || !description || !location || !dateTime || !category) {
-      Alert.alert('Missing Information', 'Please fill in all the required fields.');
+      Alert.alert(
+        "Missing Information",
+        "Please fill in all the required fields."
+      );
       return;
     }
-    
+
     try {
       setLoading(true);
-      
-      // In a real app, we would upload image and get the URL
-      const imageUrl = 'https://images.unsplash.com/photo-1523580494863-6f3031224c94';
-      
+
+      // TODO: Need to upload image and get the URL here
+      const imageUrl =
+        "https://images.unsplash.com/photo-1523580494863-6f3031224c94";
+
+      // TODO: Need to get org ID and org name from user profile
       const eventData = {
         title,
         description,
-        organizerId: 'org1', // In real app, this would be the current user's organization ID
-        organizerName: 'Stanford Eats', // In real app, this would be fetched from the user profile
-        organizerImageUrl: 'https://logo.clearbit.com/stanford.edu',
+        organizerId: "org1",
+        organizerName: "Stanford Eats",
+        organizerImageUrl: "https://logo.clearbit.com/stanford.edu",
         location,
         dateTime,
         imageUrl,
         category,
         isPrivate,
       };
-      
+
       await EventApi.createEvent(eventData);
-      
+
       // Reset form
-      setTitle('');
-      setDescription('');
-      setLocation('');
-      setDateTime('');
-      setCategory('');
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setDateTime("");
+      setCategory("");
       setIsPrivate(false);
-      
-      // Show success message
-      Alert.alert('Success', 'Event created successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
+
+      Alert.alert("Success", "Event created successfully!", [
+        { text: "OK", onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      console.error('Failed to create event:', error);
-      Alert.alert('Error', 'Failed to create event. Please try again.');
+      console.error("Failed to create event:", error);
+      Alert.alert("Error", "Failed to create event. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.title}>Create Event</Text>
           <Text style={styles.subtitle}>
-            Share your organization's upcoming events with the Stanford community
+            Share your organization's upcoming events with the Stanford
+            community
           </Text>
         </View>
-        
+
         {/* Image upload placeholder */}
         <TouchableOpacity style={styles.imageUpload}>
           <Icon name="image-outline" size={48} color={COLORS.secondaryText} />
           <Text style={styles.imageUploadText}>Upload Event Image</Text>
         </TouchableOpacity>
-        
+
         {/* Form fields */}
         <View style={styles.formContainer}>
           {/* Title */}
@@ -115,7 +127,7 @@ const CreateEventScreen = () => {
               placeholderTextColor={COLORS.secondaryText}
             />
           </View>
-          
+
           {/* Description */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Description *</Text>
@@ -130,7 +142,7 @@ const CreateEventScreen = () => {
               textAlignVertical="top"
             />
           </View>
-          
+
           {/* Location */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Location *</Text>
@@ -142,7 +154,7 @@ const CreateEventScreen = () => {
               placeholderTextColor={COLORS.secondaryText}
             />
           </View>
-          
+
           {/* Date and Time */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Date and Time *</Text>
@@ -154,7 +166,7 @@ const CreateEventScreen = () => {
               placeholderTextColor={COLORS.secondaryText}
             />
           </View>
-          
+
           {/* Category */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Category *</Text>
@@ -180,7 +192,7 @@ const CreateEventScreen = () => {
               ))}
             </View>
           </View>
-          
+
           {/* Privacy Setting */}
           <View style={styles.formGroup}>
             <View style={styles.switchContainer}>
@@ -196,7 +208,7 @@ const CreateEventScreen = () => {
               Private events will require a QR wristband for entry.
             </Text>
           </View>
-          
+
           {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, !title && styles.disabledButton]}
@@ -209,7 +221,7 @@ const CreateEventScreen = () => {
               <Text style={styles.submitButtonText}>Create Event</Text>
             )}
           </TouchableOpacity>
-          
+
           <Text style={styles.requiredNote}>* Required fields</Text>
         </View>
       </ScrollView>
@@ -230,7 +242,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: FONT.sizes.xxl,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
@@ -243,10 +255,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: SPACING.l,
   },
   imageUploadText: {
@@ -262,7 +274,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: FONT.sizes.s,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginBottom: SPACING.xs,
   },
@@ -279,8 +291,8 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   categoryButton: {
     backgroundColor: COLORS.card,
@@ -300,13 +312,13 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryText,
   },
   selectedCategoryText: {
-    color: '#FFF',
-    fontWeight: '600',
+    color: "#FFF",
+    fontWeight: "600",
   },
   switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   helperText: {
     fontSize: FONT.sizes.xs,
@@ -317,23 +329,23 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 8,
     padding: SPACING.m,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: SPACING.m,
   },
   disabledButton: {
     backgroundColor: COLORS.border,
   },
   submitButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: FONT.sizes.m,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   requiredNote: {
     fontSize: FONT.sizes.xs,
     color: COLORS.secondaryText,
     marginTop: SPACING.s,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 
-export default CreateEventScreen; 
+export default CreateEventScreen;

@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList, Event } from "../types";
-import { EventApi } from "../services/api";
+import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
@@ -32,10 +32,10 @@ const TopEventsScreen = () => {
   const fetchTopEvents = async () => {
     try {
       setLoading(true);
-      // In real app, we would pass the time filter to the API
+      // TODO: Need to pass time filter to API
       const allEvents = await EventApi.getEvents();
 
-      // Sort by likes for this demo
+      // Sort by likes for MVP
       const sortedEvents = [...allEvents].sort((a, b) => b.likes - a.likes);
       setEvents(sortedEvents);
     } catch (error) {

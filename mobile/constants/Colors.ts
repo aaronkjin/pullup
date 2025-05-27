@@ -1,6 +1,6 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Colors used in-app for light/dark mode
+ * Styling: https://www.nativewind.dev/, https://tamagui.dev/, https://reactnativeunistyles.vercel.app
  */
 
 const tintColorLight = '#0a7ea4';
@@ -43,7 +43,7 @@ export const Colors = {
   },
 };
 
-// Common color constants used throughout the app
+// Common in-app color constants
 export const COLORS = {
   text: Colors.light.text,
   background: Colors.light.background,
@@ -58,7 +58,7 @@ export const COLORS = {
   info: Colors.light.info,
 };
 
-// Update this constant to include dark mode colors when implementing theme switching
+// TODO: Update constant below to include dark mode colors (for theme switching)
 export function updateColors(colorScheme: 'light' | 'dark') {
   const colors = Colors[colorScheme];
   
