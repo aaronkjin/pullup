@@ -10,7 +10,7 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 DB_PORT = os.environ.get('DB_PORT', 5432)
 
 
-#connect to postgresql by network 
+# Connect to postgresql by network 
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -25,7 +25,7 @@ def get_db_connection():
         print(f"Detailed connection error: {str(e)}")
         raise
 
-#define all path to function connections
+# Define all path to function connections
 def lambda_handler(event, context):
     
     http_method = event.get('httpMethod', '')
@@ -115,11 +115,9 @@ def lambda_handler(event, context):
     return build_response(404, {'error': 'Not found'})
 
 
-#all following code is systematic so copy-paste in order to create new database crud operations
+# All following code is systematic so copy-paste in order to create new database crud operations
 
-
-#student section
-
+# Student section
 def get_all_students():
     try:
         conn = get_db_connection()
@@ -276,7 +274,7 @@ def delete_student(student_id):
         print(f"Error deleting student: {str(e)}")
         return build_response(500, {'error': 'Failed to delete student'})
 
-#org section
+# Org section
 
 def get_all_orgs():
     try:
@@ -641,7 +639,7 @@ def delete_event(event_id):
         print(f"Error deleting event: {str(e)}")
         return build_response(500, {'error': 'Failed to delete event'})
 
-#student-event section
+# Student-event section
 def get_all_student_events():
 
     try:
