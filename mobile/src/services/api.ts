@@ -18,7 +18,7 @@ export const EventApi = {
     return event || null;
   },
 
-  // Toggle like for an event
+  // Toggle like for event
   toggleLike: async (id: string): Promise<Event> => {
     await delay(200);
     const eventIndex = mockEvents.findIndex(event => event.id === id);
@@ -35,7 +35,7 @@ export const EventApi = {
       event.userLiked = true;
     }
     
-    // Update the source data so changes persist
+    // Update source data so changes persist
     mockEvents[eventIndex] = event;
     
     return event;
@@ -50,13 +50,13 @@ export const EventApi = {
     const event = {...mockEvents[eventIndex]};
     event.saved = !event.saved;
     
-    // Update the source data so changes persist
+    // Update source data so changes persist
     mockEvents[eventIndex] = event;
     
     return event;
   },
 
-  // Create a new event (for organization users)
+  // Create new event (for org users)
   createEvent: async (eventData: Omit<Event, 'id' | 'likes' | 'userLiked' | 'saved'>): Promise<Event> => {
     await delay(800);
     const newEvent: Event = {
@@ -72,17 +72,17 @@ export const EventApi = {
 };
 
 export const CommentApi = {
-  // Get comments for an event
+  // Get comments for event
   getCommentsByEventId: async (eventId: string): Promise<Comment[]> => {
     await delay(400);
     return mockComments.filter(comment => comment.eventId === eventId);
   },
 
-  // Add a comment to an event
+  // Add comment to event
   addComment: async (eventId: string, text: string): Promise<Comment> => {
     await delay(300);
     
-    // In a real app, we'd get this from the authenticated user
+    // TODO: Need to get current user from auth context
     const currentUser = mockUsers[0];
     
     const newComment: Comment = {
@@ -100,11 +100,11 @@ export const CommentApi = {
     return newComment;
   },
 
-  // Toggle like for a comment
+  // Toggle like for comment
   toggleCommentLike: async (commentId: string): Promise<Comment> => {
     await delay(200);
     
-    // Find the comment in mockComments and update it
+    // Find comment in mockComments + update it
     const commentIndex = mockComments.findIndex(comment => comment.id === commentId);
     if (commentIndex === -1) throw new Error('Comment not found');
     
@@ -119,7 +119,7 @@ export const CommentApi = {
       comment.userLiked = true;
     }
     
-    // Update the source data so changes persist
+    // Update source data so changes persist
     mockComments[commentIndex] = comment;
     
     return comment;
@@ -127,14 +127,14 @@ export const CommentApi = {
 };
 
 export const QRWristbandApi = {
-  // Generate a QR wristband for a private event
+  // Generate QR wristband for private event
   generateWristband: async (eventId: string): Promise<QRWristband> => {
     await delay(500);
     
-    // In a real app, we'd get this from the authenticated user
+    // TODO: Need to get current user from auth context
     const currentUser = mockUsers[0];
     
-    // Generate a random code (in real app, this would be more secure)
+    // Generate random code (TODO: Need to use more secure method)
     const code = Math.random().toString(36).substring(2, 15);
     
     const wristband: QRWristband = {
@@ -148,15 +148,14 @@ export const QRWristbandApi = {
     return wristband;
   },
   
-  // Validate a QR wristband (for event check-ins)
+  // Validate QR wristband (for event check-ins)
   validateWristband: async (code: string): Promise<{ isValid: boolean; eventId?: string; userId?: string }> => {
     await delay(700);
     
-    // In a real app, this would check against the database
-    // For demo purposes, we'll just return valid for any code
+    // TODO: Need to check against database
     return {
       isValid: true,
-      eventId: 'event3', // Assuming it's for the private mixer event
+      eventId: 'event3', // Assuming it's for private mixer event
       userId: 'user1',
     };
   },
