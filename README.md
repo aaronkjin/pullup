@@ -16,8 +16,6 @@ Mobile App:
 
 ## Getting Started
 
-For the MVP, we're focusing on the mobile app. The backend will be implemented in the next phase.
-
 ```bash
 # go to directory
 cd mobile
@@ -56,6 +54,7 @@ Next Steps:
 - Implement the backend w/ FastAPI
 - Add Stanford CAS OAuth auth
 - Implement real API calls
+- Refactor code in big files to be more modular
 - Add image upload func
 - Implement real-time notifs
 - Add better error handling + network state management
