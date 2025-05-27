@@ -3,6 +3,7 @@ CREATE TABLE Students (
     student_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE
+    #password
 );
 
 -- Organizations table
@@ -20,6 +21,7 @@ CREATE TABLE Events (
     time_location VARCHAR(200) NOT NULL,
     description TEXT,
     FOREIGN KEY (org_id) REFERENCES Orgs(org_id)
+    #upvotes/downvotes, tags
 );
 
 -- Junction table for Students and Events (many-to-many relationship)
@@ -30,3 +32,5 @@ CREATE TABLE Students_Events (
     FOREIGN KEY (student_id) REFERENCES Students(student_id),
     FOREIGN KEY (event_id) REFERENCES Events(event_id)
 );
+
+events-tags table 
