@@ -16,6 +16,8 @@ import ProfileScreen from "../screens/ProfileScreen";
 import QRWristbandScreen from "../screens/QRWristbandScreen";
 import ScanQRScreen from "../screens/ScanQRScreen";
 import TopEventsScreen from "../screens/TopEventsScreen";
+import WelcomeScreen from "../screens/WelcomeScreen";
+import LoginScreen from "../screens/LoginScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -101,8 +103,13 @@ const MainTabNavigator = () => {
   );
 };
 
+interface AppNavigatorProps {
+  isAuthenticated: boolean;
+  setIsAuthenticated: (auth: boolean) => void;
+}
+
 // Root Stack Navigator
-const AppNavigator = () => {
+const AppNavigator = ({ isAuthenticated, setIsAuthenticated }: AppNavigatorProps) => {
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -117,25 +124,47 @@ const AppNavigator = () => {
           headerShadowVisible: false,
         }}
       >
-        <Stack.Screen
-          name="Main"
-          component={MainTabNavigator}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="EventDetails"
-          component={EventDetailsScreen}
-          options={{
-            title: "",
-            headerBackTitle: "Back",
-            headerTransparent: true,
-          }}
-        />
-        <Stack.Screen
-          name="QRWristband"
-          component={QRWristbandScreen}
-          options={{ title: "Event Wristband" }}
-        />
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen
+              name="Welcome"
+              component={WelcomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Login"
+              options={{ 
+                headerShown: true,
+                title: "",
+                headerBackTitle: "Back"
+              }}
+            >
+              {(props: { navigation: any; route: any }) => <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />}
+            </Stack.Screen>
+          </>
+        ) : (
+          <>
+          <Stack.Screen
+            name="Main"
+            component={MainTabNavigator}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="EventDetails"
+            component={EventDetailsScreen}
+            options={{
+              title: "",
+              headerBackTitle: "Back",
+              headerTransparent: true,
+            }}
+          />
+          <Stack.Screen
+            name="QRWristband"
+            component={QRWristbandScreen}
+            options={{ title: "Event Wristband" }}
+          />
+        </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
