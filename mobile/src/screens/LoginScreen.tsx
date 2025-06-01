@@ -1,16 +1,25 @@
-import React from 'react';
-import { View, StyleSheet, Text, Image } from 'react-native';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
+import React from "react";
+import { View, StyleSheet, Text, Image } from "react-native";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+
+interface UserInfo {
+  name?: string;
+  picture?: string;
+  email?: string;
+}
 
 interface LoginScreenProps {
   setIsAuthenticated: (auth: boolean) => void;
+  setUserInfo: (userInfo: UserInfo | null) => void;
 }
 
-const LoginScreen = ({ setIsAuthenticated }: LoginScreenProps) => {
+const LoginScreen = ({ setIsAuthenticated, setUserInfo }: LoginScreenProps) => {
   const handleLoginSuccess = (credentialResponse: any) => {
     console.log("Login successful!", credentialResponse);
-    console.log("Login successful!", jwtDecode(credentialResponse.credential)); // use jwtdecode to grab names, photo, etc
+    const decodedToken = jwtDecode<UserInfo>(credentialResponse.credential); // use jwtdecode to grab names, photo, etc
+    console.log("Login successful!", decodedToken);
+    setUserInfo(decodedToken);
     setIsAuthenticated(true);
   };
 
@@ -20,8 +29,8 @@ const LoginScreen = ({ setIsAuthenticated }: LoginScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <Image 
-        source={require('../assets/stanford-logo.png')} 
+      <Image
+        source={require("../assets/stanford-logo.png")}
         style={styles.stanfordLogo}
         resizeMode="contain"
       />
@@ -29,10 +38,7 @@ const LoginScreen = ({ setIsAuthenticated }: LoginScreenProps) => {
       <Text style={styles.subtitle}>
         Log in with your Stanford account to continue.
       </Text>
-      <GoogleLogin 
-        onSuccess={handleLoginSuccess}
-        onError={handleLoginError}
-      />
+      <GoogleLogin onSuccess={handleLoginSuccess} onError={handleLoginError} />
     </View>
   );
 };
@@ -40,10 +46,10 @@ const LoginScreen = ({ setIsAuthenticated }: LoginScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   stanfordLogo: {
     width: 80,
@@ -52,15 +58,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

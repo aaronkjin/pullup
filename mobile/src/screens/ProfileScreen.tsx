@@ -17,15 +17,25 @@ import { COLORS, SPACING, FONT } from "../utils/theme";
 import { mockUsers, mockEvents } from "../services/mockData";
 import { RootStackParamList, Event } from "../types";
 
+interface UserInfo {
+  name?: string;
+  picture?: string;
+  email?: string;
+}
+
+interface ProfileScreenProps {
+  userInfo: UserInfo | null;
+}
+
 type ProfileNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "Main"
 >;
 
 // For demo, we're using the first user from mock data
-const currentUser = mockUsers[0];
+// const currentUser = mockUsers[0];
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ userInfo }: ProfileScreenProps) => {
   const navigation = useNavigation<ProfileNavigationProp>();
   const [savedEvents, setSavedEvents] = useState<Event[]>([]);
 
@@ -63,13 +73,17 @@ const ProfileScreen = () => {
           <Image
             source={{
               uri:
-                currentUser.profileImageUrl ||
+                userInfo?.picture ||
                 "https://randomuser.me/api/portraits/lego/1.jpg",
             }}
             style={styles.profileImage}
           />
-          <Text style={styles.displayName}>{currentUser.displayName}</Text>
-          <Text style={styles.username}>@{currentUser.username}</Text>
+          <Text style={styles.displayName}>
+            {userInfo?.name || "User Name"}
+          </Text>
+          <Text style={styles.username}>
+            @{userInfo?.email || "user.email"}
+          </Text>
 
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>

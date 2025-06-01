@@ -1,7 +1,13 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  createNativeStackNavigator,
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
+import {
+  createBottomTabNavigator,
+  BottomTabScreenProps,
+} from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { TabBarIconProps } from "@react-navigation/bottom-tabs";
 
@@ -19,11 +25,30 @@ import TopEventsScreen from "../screens/TopEventsScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 
+interface UserInfo {
+  name?: string;
+  picture?: string;
+  email?: string;
+}
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Define ParamList for MainTabNavigator
+export type MainTabParamList = {
+  Home: undefined;
+  TopEvents: undefined;
+  CreateEvent: undefined;
+  ScanQR: undefined;
+  Profile: undefined; // userInfo will be passed as a prop directly, not a route param here
+};
+
+interface MainTabNavigatorProps {
+  userInfo: UserInfo | null;
+}
+
 // Bottom Tab Navigator
-const MainTabNavigator = () => {
+const MainTabNavigator = ({ userInfo }: MainTabNavigatorProps) => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -91,14 +116,17 @@ const MainTabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color, size }: TabBarIconProps) => (
             <Ionicons name="person" color={color} size={size} />
           ),
           headerShown: false,
         }}
-      />
+      >
+        {(props: BottomTabScreenProps<MainTabParamList, "Profile">) => (
+          <ProfileScreen {...props} userInfo={userInfo} />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -106,10 +134,17 @@ const MainTabNavigator = () => {
 interface AppNavigatorProps {
   isAuthenticated: boolean;
   setIsAuthenticated: (auth: boolean) => void;
+  userInfo: UserInfo | null;
+  setUserInfo: (userInfo: UserInfo | null) => void;
 }
 
 // Root Stack Navigator
-const AppNavigator = ({ isAuthenticated, setIsAuthenticated }: AppNavigatorProps) => {
+const AppNavigator = ({
+  isAuthenticated,
+  setIsAuthenticated,
+  userInfo,
+  setUserInfo,
+}: AppNavigatorProps) => {
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -133,37 +168,43 @@ const AppNavigator = ({ isAuthenticated, setIsAuthenticated }: AppNavigatorProps
             />
             <Stack.Screen
               name="Login"
-              options={{ 
+              options={{
                 headerShown: true,
                 title: "",
-                headerBackTitle: "Back"
+                headerBackTitle: "Back",
               }}
             >
-              {(props: { navigation: any; route: any }) => <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />}
+              {(props: { navigation: any; route: any }) => (
+                <LoginScreen
+                  {...props}
+                  setIsAuthenticated={setIsAuthenticated}
+                  setUserInfo={setUserInfo}
+                />
+              )}
             </Stack.Screen>
           </>
         ) : (
           <>
-          <Stack.Screen
-            name="Main"
-            component={MainTabNavigator}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="EventDetails"
-            component={EventDetailsScreen}
-            options={{
-              title: "",
-              headerBackTitle: "Back",
-              headerTransparent: true,
-            }}
-          />
-          <Stack.Screen
-            name="QRWristband"
-            component={QRWristbandScreen}
-            options={{ title: "Event Wristband" }}
-          />
-        </>
+            <Stack.Screen name="Main" options={{ headerShown: false }}>
+              {(props: NativeStackScreenProps<RootStackParamList, "Main">) => (
+                <MainTabNavigator {...props} userInfo={userInfo} />
+              )}
+            </Stack.Screen>
+            <Stack.Screen
+              name="EventDetails"
+              component={EventDetailsScreen}
+              options={{
+                title: "",
+                headerBackTitle: "Back",
+                headerTransparent: true,
+              }}
+            />
+            <Stack.Screen
+              name="QRWristband"
+              component={QRWristbandScreen}
+              options={{ title: "Event Wristband" }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
