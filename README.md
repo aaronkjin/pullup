@@ -21,7 +21,7 @@ Mobile App:
 cd mobile
 
 # install dependencies
-npm install
+npm i --legacy-peer-deps
 
 # run app
 npm start
