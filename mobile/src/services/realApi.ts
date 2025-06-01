@@ -1,5 +1,35 @@
-import { Event, Comment, User, QRWristband } from '../types';
+import { Event, User, QRWristband } from '../types';
 import { get, post, put, del } from './httpClient';
+
+// Backend API response types (different from our frontend types)
+interface BackendEvent {
+  eventId: string;
+  orgId: string;
+  orgName: string;
+  name: string;
+  timeLocation: string;
+  description: string;
+}
+
+// Transform backend event response to frontend Event type
+const transformBackendEvent = (backendEvent: BackendEvent): Event => {
+  return {
+    id: backendEvent.eventId,
+    title: backendEvent.name,
+    description: backendEvent.description,
+    organizerId: backendEvent.orgId,
+    organizerName: backendEvent.orgName,
+    organizerImageUrl: `https://logo.clearbit.com/${backendEvent.orgName.toLowerCase().replace(/\s+/g, '')}.edu`, // Default org image
+    location: backendEvent.timeLocation, // Backend combines time and location
+    dateTime: new Date().toISOString(), // TODO: Extract proper date from timeLocation or update backend
+    imageUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94', // Default event image
+    category: 'Other', // TODO: Add category to backend
+    isPrivate: false, // TODO: Add privacy setting to backend
+    likes: 0, // TODO: Add likes to backend
+    userLiked: false, // TODO: Add user interaction to backend
+    saved: false, // TODO: Add saved status to backend
+  };
+};
 
 // API endpoints - these should match your FastAPI backend routes
 const ENDPOINTS = {
@@ -8,11 +38,6 @@ const ENDPOINTS = {
   event: (id: string) => `/events/${id}`,
   eventLike: (id: string) => `/events/${id}/like`,
   eventSave: (id: string) => `/events/${id}/save`,
-  
-  // Comments
-  eventComments: (eventId: string) => `/events/${eventId}/comments`,
-  comment: (id: string) => `/comments/${id}`,
-  commentLike: (id: string) => `/comments/${id}/like`,
   
   // QR Wristbands
   wristbands: '/wristbands',
@@ -46,22 +71,26 @@ export const EventApi = {
     }
     
     const url = `${ENDPOINTS.events}${params.toString() ? `?${params.toString()}` : ''}`;
-    return await get<Event[]>(url);
+    const backendEvents = await get<BackendEvent[]>(url);
+    return backendEvents.map(transformBackendEvent);
   },
 
   // Get event by ID
   getEventById: async (id: string): Promise<Event> => {
-    return await get<Event>(ENDPOINTS.event(id));
+    const backendEvent = await get<BackendEvent>(ENDPOINTS.event(id));
+    return transformBackendEvent(backendEvent);
   },
 
   // Toggle like for an event
   toggleLike: async (id: string): Promise<Event> => {
-    return await post<Event>(ENDPOINTS.eventLike(id));
+    const backendEvent = await post<BackendEvent>(ENDPOINTS.eventLike(id));
+    return transformBackendEvent(backendEvent);
   },
 
   // Toggle saved status
   toggleSaved: async (id: string): Promise<Event> => {
-    return await post<Event>(ENDPOINTS.eventSave(id));
+    const backendEvent = await post<BackendEvent>(ENDPOINTS.eventSave(id));
+    return transformBackendEvent(backendEvent);
   },
 
   // Create a new event (for organization users)
@@ -76,44 +105,34 @@ export const EventApi = {
     imageUrl?: string;
     capacity?: number;
   }): Promise<Event> => {
-    return await post<Event>(ENDPOINTS.events, eventData);
+    // Transform frontend data to backend format
+    const backendData = {
+      name: eventData.title,
+      description: eventData.description,
+      timeLocation: `${eventData.date} ${eventData.time} at ${eventData.location}`,
+      orgId: 'org1', // TODO: Get actual org ID from user context
+    };
+    const backendEvent = await post<BackendEvent>(ENDPOINTS.events, backendData);
+    return transformBackendEvent(backendEvent);
   },
 
   // Update an event
   updateEvent: async (id: string, eventData: Partial<Event>): Promise<Event> => {
-    return await put<Event>(ENDPOINTS.event(id), eventData);
+    // Transform frontend data to backend format
+    const backendData: any = {};
+    if (eventData.title) backendData.name = eventData.title;
+    if (eventData.description) backendData.description = eventData.description;
+    if (eventData.location || eventData.dateTime) {
+      backendData.timeLocation = `${eventData.dateTime || ''} at ${eventData.location || ''}`;
+    }
+    
+    const backendEvent = await put<BackendEvent>(ENDPOINTS.event(id), backendData);
+    return transformBackendEvent(backendEvent);
   },
 
   // Delete an event
   deleteEvent: async (id: string): Promise<void> => {
     return await del<void>(ENDPOINTS.event(id));
-  },
-};
-
-export const CommentApi = {
-  // Get comments for an event
-  getCommentsByEventId: async (eventId: string): Promise<Comment[]> => {
-    return await get<Comment[]>(ENDPOINTS.eventComments(eventId));
-  },
-
-  // Add a comment to an event
-  addComment: async (eventId: string, text: string): Promise<Comment> => {
-    return await post<Comment>(ENDPOINTS.eventComments(eventId), { text });
-  },
-
-  // Update a comment
-  updateComment: async (commentId: string, text: string): Promise<Comment> => {
-    return await put<Comment>(ENDPOINTS.comment(commentId), { text });
-  },
-
-  // Delete a comment
-  deleteComment: async (commentId: string): Promise<void> => {
-    return await del<void>(ENDPOINTS.comment(commentId));
-  },
-
-  // Toggle like for a comment
-  toggleCommentLike: async (commentId: string): Promise<Comment> => {
-    return await post<Comment>(ENDPOINTS.commentLike(commentId));
   },
 };
 

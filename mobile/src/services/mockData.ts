@@ -1,4 +1,4 @@
-import { Event, Comment, User } from '../types';
+import { Event, User } from '../types';
 
 // Mock users
 export const mockUsers: User[] = [
@@ -113,42 +113,5 @@ export const mockEvents: Event[] = [
     likes: 94,
     userLiked: true,
     saved: false,
-  },
-];
-
-// Mock comments
-export const mockComments: Comment[] = [
-  {
-    id: 'comment1',
-    eventId: 'event1',
-    userId: 'user1',
-    username: 'aaronjin',
-    userImageUrl: 'https://randomuser.me/api/portraits/lego/1.jpg',
-    text: 'Looking forward to this! Will there be vegetarian options?',
-    createdAt: '2025-05-10T14:23:00Z',
-    likes: 15,
-    userLiked: false,
-  },
-  {
-    id: 'comment2',
-    eventId: 'event1',
-    userId: 'org1',
-    username: 'stanfordeats',
-    userImageUrl: 'https://logo.clearbit.com/stanford.edu',
-    text: 'Yes, we will have vegetarian and vegan options available!',
-    createdAt: '2025-05-10T15:45:00Z',
-    likes: 8,
-    userLiked: true,
-  },
-  {
-    id: 'comment3',
-    eventId: 'event2',
-    userId: 'user1',
-    username: 'aaronjin',
-    userImageUrl: 'https://randomuser.me/api/portraits/lego/1.jpg',
-    text: 'Excited for this year\'s concert! Last year was amazing.',
-    createdAt: '2025-05-12T10:15:00Z',
-    likes: 6,
-    userLiked: false,
   },
 ]; 

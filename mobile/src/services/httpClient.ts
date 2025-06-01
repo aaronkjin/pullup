@@ -39,6 +39,9 @@ httpClient.interceptors.response.use(
         data: error.response?.data,
         url: error.config?.url,
         method: error.config?.method,
+        message: error.message,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL ? `${error.config.baseURL}${error.config.url}` : error.config?.url,
       });
     }
     

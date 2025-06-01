@@ -78,11 +78,6 @@ const ProfileScreen = () => {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>32</Text>
-              <Text style={styles.statLabel}>Comments</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
               <Text style={styles.statValue}>7</Text>
               <Text style={styles.statLabel}>Wristbands</Text>
             </View>

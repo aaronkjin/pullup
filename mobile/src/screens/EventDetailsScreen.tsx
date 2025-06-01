@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  TextInput,
   ActivityIndicator,
   SafeAreaView,
 } from "react-native";
@@ -14,9 +13,8 @@ import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Icon from "react-native-vector-icons/Ionicons";
 
-import { RootStackParamList, Event, Comment } from "../types";
-import { EventApi, CommentApi } from "../services/apiProvider";
-import CommentItem from "../components/CommentItem";
+import { RootStackParamList, Event } from "../types";
+import { EventApi } from "../services/apiProvider";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
 type EventDetailsRouteProp = RouteProp<RootStackParamList, "EventDetails">;
@@ -31,17 +29,15 @@ const EventDetailsScreen = () => {
   const { eventId } = route.params;
 
   const [event, setEvent] = useState<Event | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [commentText, setCommentText] = useState<string>("");
-  const [loadingComments, setLoadingComments] = useState<boolean>(true);
-  const [submittingComment, setSubmittingComment] = useState<boolean>(false);
 
   // Fetch event details
   const fetchEventDetails = async () => {
     try {
       setLoading(true);
+      console.log("Fetching event details for eventId:", eventId);
       const eventData = await EventApi.getEventById(eventId);
+      console.log("Received event data:", eventData);
       setEvent(eventData);
 
       // Set header title
@@ -52,21 +48,11 @@ const EventDetailsScreen = () => {
       }
     } catch (error) {
       console.error("Failed to fetch event details:", error);
+      console.error("EventId that failed:", eventId);
+      // Log the route params to debug
+      console.error("Route params:", route.params);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Fetch comments
-  const fetchComments = async () => {
-    try {
-      setLoadingComments(true);
-      const commentsData = await CommentApi.getCommentsByEventId(eventId);
-      setComments(commentsData);
-    } catch (error) {
-      console.error("Failed to fetch comments:", error);
-    } finally {
-      setLoadingComments(false);
     }
   };
 
@@ -92,36 +78,6 @@ const EventDetailsScreen = () => {
     }
   };
 
-  // Handle comment submission
-  const handleSubmitComment = async () => {
-    if (!commentText.trim()) return;
-
-    try {
-      setSubmittingComment(true);
-      const newComment = await CommentApi.addComment(eventId, commentText);
-      setComments([newComment, ...comments]);
-      setCommentText("");
-    } catch (error) {
-      console.error("Failed to submit comment:", error);
-    } finally {
-      setSubmittingComment(false);
-    }
-  };
-
-  // Handle comment like
-  const handleCommentLike = async (commentId: string) => {
-    try {
-      const updatedComment = await CommentApi.toggleCommentLike(commentId);
-      setComments(
-        comments.map((comment) =>
-          comment.id === commentId ? updatedComment : comment
-        )
-      );
-    } catch (error) {
-      console.error("Failed to like comment:", error);
-    }
-  };
-
   // Navigate to QR wristband screen
   const handleGetWristband = () => {
     navigation.navigate("QRWristband", { eventId });
@@ -144,7 +100,6 @@ const EventDetailsScreen = () => {
 
   useEffect(() => {
     fetchEventDetails();
-    fetchComments();
   }, [eventId]);
 
   if (loading) {
@@ -284,56 +239,6 @@ const EventDetailsScreen = () => {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
-
-          {/* Comments */}
-          <View style={styles.commentsContainer}>
-            <Text style={styles.sectionTitle}>Comments</Text>
-
-            <View style={styles.commentInputContainer}>
-              <TextInput
-                style={styles.commentInput}
-                placeholder="Add a comment..."
-                value={commentText}
-                onChangeText={setCommentText}
-                multiline
-              />
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  (!commentText.trim() || submittingComment) &&
-                    styles.disabledButton,
-                ]}
-                onPress={handleSubmitComment}
-                disabled={!commentText.trim() || submittingComment}
-              >
-                {submittingComment ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Icon name="send" size={20} color="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-
-            {loadingComments ? (
-              <ActivityIndicator
-                style={styles.commentsLoading}
-                size="small"
-                color={COLORS.primary}
-              />
-            ) : comments.length > 0 ? (
-              comments.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  onLike={handleCommentLike}
-                />
-              ))
-            ) : (
-              <Text style={styles.noCommentsText}>
-                No comments yet. Be the first to comment!
-              </Text>
-            )}
           </View>
         </View>
       </ScrollView>
@@ -505,45 +410,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFF",
     marginLeft: SPACING.xs,
-  },
-  commentsContainer: {
-    marginBottom: SPACING.l,
-  },
-  commentInputContainer: {
-    flexDirection: "row",
-    marginBottom: SPACING.m,
-  },
-  commentInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 20,
-    padding: SPACING.m,
-    fontSize: FONT.sizes.s,
-    backgroundColor: COLORS.card,
-    maxHeight: 100,
-  },
-  submitButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: COLORS.primary,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: SPACING.s,
-    alignSelf: "flex-end",
-  },
-  disabledButton: {
-    backgroundColor: COLORS.border,
-  },
-  commentsLoading: {
-    marginVertical: SPACING.l,
-  },
-  noCommentsText: {
-    textAlign: "center",
-    color: COLORS.secondaryText,
-    fontSize: FONT.sizes.s,
-    marginVertical: SPACING.l,
   },
 });
 

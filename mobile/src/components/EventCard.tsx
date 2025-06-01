@@ -112,19 +112,6 @@ const EventCard: React.FC<EventCardProps> = ({
             </Text>
           </TouchableOpacity>
 
-          {/* Comments */}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => onPress(event.id)}
-          >
-            <Ionicons
-              name="chatbubble-outline"
-              size={22}
-              color={COLORS.secondaryText}
-            />
-            <Text style={styles.actionText}>Comment</Text>
-          </TouchableOpacity>
-
           {/* Save */}
           <TouchableOpacity
             style={[styles.actionButton, styles.saveButton]}

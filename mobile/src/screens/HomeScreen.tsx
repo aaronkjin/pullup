@@ -77,6 +77,7 @@ const HomeScreen = () => {
 
   // Handle event press
   const handleEventPress = (eventId: string) => {
+    console.log("Navigating to event details with eventId:", eventId);
     navigation.navigate("EventDetails", { eventId });
   };
 

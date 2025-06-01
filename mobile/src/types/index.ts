@@ -23,24 +23,13 @@ export interface Event {
   saved: boolean;
 }
 
-export interface Comment {
-  id: string;
-  eventId: string;
-  userId: string;
-  username: string;
-  userImageUrl?: string;
-  text: string;
-  createdAt: string;
-  likes: number;
-  userLiked: boolean;
-}
-
 export interface QRWristband {
+  id: string;
   eventId: string;
   userId: string;
   code: string;
   createdAt: string;
-  expiresAt: string;
+  isActive: boolean;
 }
 
 export type RootStackParamList = {

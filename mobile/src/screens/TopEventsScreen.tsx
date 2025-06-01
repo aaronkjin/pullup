@@ -71,6 +71,10 @@ const TopEventsScreen = () => {
 
   // Handle event press
   const handleEventPress = (eventId: string) => {
+    console.log(
+      "TopEventsScreen: Navigating to event details with eventId:",
+      eventId
+    );
     navigation.navigate("EventDetails", { eventId });
   };
 

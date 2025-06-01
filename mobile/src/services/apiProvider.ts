@@ -1,11 +1,11 @@
-import { Event, Comment, User, QRWristband } from '../types';
+import { Event, User, QRWristband } from '../types';
 
 // Both mock and real API services (for testing)
-import { EventApi as MockEventApi, CommentApi as MockCommentApi, QRWristbandApi as MockQRWristbandApi } from './api';
-import { EventApi as RealEventApi, CommentApi as RealCommentApi, QRWristbandApi as RealQRWristbandApi, AuthApi as RealAuthApi } from './realApi';
+import { EventApi as MockEventApi, QRWristbandApi as MockQRWristbandApi } from './api';
+import { EventApi as RealEventApi, QRWristbandApi as RealQRWristbandApi, AuthApi as RealAuthApi } from './realApi';
 
 // Config flag: false for real APIs, true for mock APIs during dev
-const USE_MOCK_API = false;
+const USE_MOCK_API = true;
 
 // Event API interface
 interface IEventApi {
@@ -14,13 +14,6 @@ interface IEventApi {
   toggleLike: (id: string) => Promise<Event>;
   toggleSaved: (id: string) => Promise<Event>;
   createEvent: (eventData: any) => Promise<Event>;
-}
-
-// Comment API interface
-interface ICommentApi {
-  getCommentsByEventId: (eventId: string) => Promise<Comment[]>;
-  addComment: (eventId: string, text: string) => Promise<Comment>;
-  toggleCommentLike: (commentId: string) => Promise<Comment>;
 }
 
 // QR Wristband API interface
@@ -76,30 +69,6 @@ class EventApiProvider implements IEventApi {
       return MockEventApi.createEvent(eventData);
     }
     return RealEventApi.createEvent(eventData);
-  }
-}
-
-// Wrapper for Comment API
-class CommentApiProvider implements ICommentApi {
-  async getCommentsByEventId(eventId: string): Promise<Comment[]> {
-    if (USE_MOCK_API) {
-      return MockCommentApi.getCommentsByEventId(eventId);
-    }
-    return RealCommentApi.getCommentsByEventId(eventId);
-  }
-
-  async addComment(eventId: string, text: string): Promise<Comment> {
-    if (USE_MOCK_API) {
-      return MockCommentApi.addComment(eventId, text);
-    }
-    return RealCommentApi.addComment(eventId, text);
-  }
-
-  async toggleCommentLike(commentId: string): Promise<Comment> {
-    if (USE_MOCK_API) {
-      return MockCommentApi.toggleCommentLike(commentId);
-    }
-    return RealCommentApi.toggleCommentLike(commentId);
   }
 }
 
@@ -180,7 +149,6 @@ class AuthApiProvider implements IAuthApi {
 
 // Export config API providers
 export const EventApi = new EventApiProvider();
-export const CommentApi = new CommentApiProvider();
 export const QRWristbandApi = new QRWristbandApiProvider();
 export const AuthApi = new AuthApiProvider();
 
