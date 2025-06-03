@@ -2,6 +2,9 @@ PRD.md
 INTEGRATION.md
 CONSTANTS.md
 
+.cursor/rules
+.expo/
+
 # env vars
 .env
 
