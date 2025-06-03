@@ -35,37 +35,15 @@ const TopEventsScreen = () => {
       // TODO: Need to pass time filter to API
       const allEvents = await EventApi.getEvents();
 
-      // Sort by likes for MVP
-      const sortedEvents = [...allEvents].sort((a, b) => b.likes - a.likes);
+      // Sort by pullUpCount for MVP (most popular events)
+      const sortedEvents = [...allEvents].sort(
+        (a, b) => b.pullUpCount - a.pullUpCount
+      );
       setEvents(sortedEvents);
     } catch (error) {
       console.error("Failed to fetch top events:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Handle like
-  const handleLike = async (eventId: string) => {
-    try {
-      const updatedEvent = await EventApi.toggleLike(eventId);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
-      );
-    } catch (error) {
-      console.error("Failed to like:", error);
-    }
-  };
-
-  // Handle save
-  const handleSave = async (eventId: string) => {
-    try {
-      const updatedEvent = await EventApi.toggleSaved(eventId);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
-      );
-    } catch (error) {
-      console.error("Failed to save:", error);
     }
   };
 
@@ -154,12 +132,7 @@ const TopEventsScreen = () => {
               <View style={styles.rankingBadge}>
                 <Text style={styles.rankingNumber}>{index + 1}</Text>
               </View>
-              <EventCard
-                event={item}
-                onPress={handleEventPress}
-                onLike={handleLike}
-                onSave={handleSave}
-              />
+              <EventCard event={item} onPress={handleEventPress} />
             </View>
           )}
           contentContainerStyle={styles.listContainer}

@@ -23,34 +23,44 @@ const CreateEventScreen = () => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [dateTime, setDateTime] = useState("");
-  const [category, setCategory] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [eventPassword, setEventPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Categories for selection
-  const categories = [
-    "Food",
-    "Music",
-    "Academic",
-    "Social",
-    "Recreation",
-    "Sports",
-    "Arts",
-    "Technology",
-    "Other",
-  ];
+  // Generate random password for private events
+  const generatePassword = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setEventPassword(result);
+  };
 
-  // Handle category selection
-  const handleCategorySelect = (selectedCategory: string) => {
-    setCategory(selectedCategory);
+  // Auto-generate password when private is toggled on
+  const handlePrivateToggle = (value: boolean) => {
+    setIsPrivate(value);
+    if (value && !eventPassword) {
+      generatePassword();
+    } else if (!value) {
+      setEventPassword("");
+    }
   };
 
   // Handle create event
   const handleCreateEvent = async () => {
-    if (!title || !description || !location || !dateTime || !category) {
+    if (!title || !description || !location || !dateTime) {
       Alert.alert(
         "Missing Information",
         "Please fill in all the required fields."
+      );
+      return;
+    }
+
+    if (isPrivate && !eventPassword) {
+      Alert.alert(
+        "Password Required",
+        "Please generate a password for the private event."
       );
       return;
     }
@@ -72,8 +82,8 @@ const CreateEventScreen = () => {
         location,
         dateTime,
         imageUrl,
-        category,
         isPrivate,
+        eventPassword: isPrivate ? eventPassword : undefined,
       };
 
       await EventApi.createEvent(eventData);
@@ -83,8 +93,8 @@ const CreateEventScreen = () => {
       setDescription("");
       setLocation("");
       setDateTime("");
-      setCategory("");
       setIsPrivate(false);
+      setEventPassword("");
 
       Alert.alert("Success", "Event created successfully!", [
         { text: "OK", onPress: () => navigation.goBack() },
@@ -167,63 +177,63 @@ const CreateEventScreen = () => {
             />
           </View>
 
-          {/* Category */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Category *</Text>
-            <View style={styles.categoriesContainer}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    styles.categoryButton,
-                    category === cat && styles.selectedCategory,
-                  ]}
-                  onPress={() => handleCategorySelect(cat)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      category === cat && styles.selectedCategoryText,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
           {/* Privacy Setting */}
           <View style={styles.formGroup}>
             <View style={styles.switchContainer}>
-              <Text style={styles.label}>Private Event</Text>
+              <View>
+                <Text style={styles.label}>Private Event</Text>
+                <Text style={styles.switchSubtext}>
+                  Require password for access
+                </Text>
+              </View>
               <Switch
                 value={isPrivate}
-                onValueChange={setIsPrivate}
+                onValueChange={handlePrivateToggle}
                 trackColor={{ false: COLORS.border, true: COLORS.primary }}
-                thumbColor="#FFF"
+                thumbColor={COLORS.background}
               />
             </View>
-            <Text style={styles.helperText}>
-              Private events will require a QR wristband for entry.
-            </Text>
           </View>
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.submitButton, !title && styles.disabledButton]}
-            onPress={handleCreateEvent}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <Text style={styles.submitButtonText}>Create Event</Text>
-            )}
-          </TouchableOpacity>
-
-          <Text style={styles.requiredNote}>* Required fields</Text>
+          {/* Password Generation for Private Events */}
+          {isPrivate && (
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Event Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, styles.passwordInput]}
+                  value={eventPassword}
+                  onChangeText={setEventPassword}
+                  placeholder="Generated password"
+                  placeholderTextColor={COLORS.secondaryText}
+                />
+                <TouchableOpacity
+                  style={styles.generateButton}
+                  onPress={generatePassword}
+                >
+                  <Icon name="refresh" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.passwordNote}>
+                Share this password with invited guests. They'll need it to pull
+                up to your event.
+              </Text>
+            </View>
+          )}
         </View>
+
+        {/* Create Button */}
+        <TouchableOpacity
+          style={[styles.createButton, loading && styles.disabledButton]}
+          onPress={handleCreateEvent}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color={COLORS.background} />
+          ) : (
+            <Text style={styles.createButtonText}>Create Event</Text>
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -235,7 +245,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    padding: SPACING.l,
+    padding: SPACING.m,
+    paddingBottom: 100,
   },
   header: {
     marginBottom: SPACING.l,
@@ -249,11 +260,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FONT.sizes.s,
     color: COLORS.secondaryText,
+    lineHeight: 20,
   },
   imageUpload: {
-    height: 180,
+    height: 150,
     backgroundColor: COLORS.card,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: COLORS.border,
     borderStyle: "dashed",
     borderRadius: 12,
@@ -267,7 +279,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.s,
   },
   formContainer: {
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.l,
   },
   formGroup: {
     marginBottom: SPACING.l,
@@ -276,75 +288,66 @@ const styles = StyleSheet.create({
     fontSize: FONT.sizes.s,
     fontWeight: "600",
     color: COLORS.text,
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.s,
   },
   input: {
-    backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 8,
-    padding: SPACING.m,
-    fontSize: FONT.sizes.m,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    fontSize: FONT.sizes.s,
     color: COLORS.text,
+    backgroundColor: COLORS.card,
   },
   textArea: {
-    minHeight: 100,
-  },
-  categoriesContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  categoryButton: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 16,
-    paddingHorizontal: SPACING.m,
-    paddingVertical: SPACING.xs,
-    margin: 4,
-  },
-  selectedCategory: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  categoryText: {
-    fontSize: FONT.sizes.xs,
-    color: COLORS.secondaryText,
-  },
-  selectedCategoryText: {
-    color: "#FFF",
-    fontWeight: "600",
+    height: 100,
+    textAlignVertical: "top",
   },
   switchContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  helperText: {
+  switchSubtext: {
     fontSize: FONT.sizes.xs,
     color: COLORS.secondaryText,
-    marginTop: 4,
+    marginTop: 2,
   },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    padding: SPACING.m,
+  passwordContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: SPACING.m,
   },
-  disabledButton: {
-    backgroundColor: COLORS.border,
+  passwordInput: {
+    flex: 1,
+    marginRight: SPACING.s,
   },
-  submitButtonText: {
-    color: "#FFF",
-    fontSize: FONT.sizes.m,
-    fontWeight: "600",
+  generateButton: {
+    padding: SPACING.s,
+    backgroundColor: COLORS.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
-  requiredNote: {
+  passwordNote: {
     fontSize: FONT.sizes.xs,
     color: COLORS.secondaryText,
     marginTop: SPACING.s,
-    textAlign: "center",
+    fontStyle: "italic",
+  },
+  createButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    paddingVertical: SPACING.m,
+    alignItems: "center",
+  },
+  createButtonText: {
+    fontSize: FONT.sizes.m,
+    fontWeight: "600",
+    color: COLORS.background,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
 

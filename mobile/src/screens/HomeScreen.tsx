@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Event } from "../types";
 import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
+import PullUpModal from "../components/PullUpModal";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
@@ -30,6 +31,10 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("all"); // 'all', 'public', 'private'
+
+  // Modal state
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Fetch events
   const fetchEvents = async () => {
@@ -51,34 +56,51 @@ const HomeScreen = () => {
     setRefreshing(false);
   };
 
-  // Handle like
-  const handleLike = async (eventId: string) => {
+  // Handle pull up from card (quick action)
+  const handlePullUp = async (eventId: string) => {
     try {
-      const updatedEvent = await EventApi.toggleLike(eventId);
+      const updatedEvent = await EventApi.togglePullUp(eventId);
       setEvents(
         events.map((event) => (event.id === eventId ? updatedEvent : event))
       );
     } catch (error) {
-      console.error("Failed to like:", error);
+      console.error("Failed to toggle pull up:", error);
     }
   };
 
-  // Handle save/bookmark
-  const handleSave = async (eventId: string) => {
-    try {
-      const updatedEvent = await EventApi.toggleSaved(eventId);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
-      );
-    } catch (error) {
-      console.error("Failed to save:", error);
-    }
-  };
-
-  // Handle event press
+  // Handle event press (show modal)
   const handleEventPress = (eventId: string) => {
-    console.log("Navigating to event details with eventId:", eventId);
-    navigation.navigate("EventDetails", { eventId });
+    const event = events.find((e) => e.id === eventId);
+    if (event) {
+      setSelectedEvent(event);
+      setModalVisible(true);
+    }
+  };
+
+  // Handle modal pull up confirmation
+  const handleModalPullUp = async (eventId: string, password?: string) => {
+    try {
+      // For private events, validate password
+      if (
+        selectedEvent?.isPrivate &&
+        password !== selectedEvent.eventPassword
+      ) {
+        throw new Error("Invalid password");
+      }
+
+      const updatedEvent = await EventApi.togglePullUp(eventId);
+      setEvents(
+        events.map((event) => (event.id === eventId ? updatedEvent : event))
+      );
+    } catch (error) {
+      throw error; // Re-throw to let modal handle the error
+    }
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedEvent(null);
   };
 
   // Filter events
@@ -99,9 +121,6 @@ const HomeScreen = () => {
 
       <View style={styles.header}>
         <Text style={styles.title}>Pullup</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={24} color={COLORS.text} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -166,8 +185,8 @@ const HomeScreen = () => {
             <EventCard
               event={item}
               onPress={handleEventPress}
-              onLike={handleLike}
-              onSave={handleSave}
+              onPullUp={handlePullUp}
+              userType="student"
             />
           )}
           contentContainerStyle={styles.listContainer}
@@ -191,6 +210,14 @@ const HomeScreen = () => {
           }
         />
       )}
+
+      {/* Pull Up Modal */}
+      <PullUpModal
+        visible={modalVisible}
+        event={selectedEvent}
+        onClose={closeModal}
+        onConfirm={handleModalPullUp}
+      />
     </SafeAreaView>
   );
 };
@@ -202,34 +229,31 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SPACING.l,
+    alignItems: "center",
+    paddingHorizontal: SPACING.m,
     paddingVertical: SPACING.m,
+    backgroundColor: COLORS.background,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   title: {
-    fontSize: FONT.sizes.xxl,
+    fontSize: FONT.sizes.xl,
     fontWeight: "700",
     color: COLORS.text,
   },
-  searchButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-  },
   filtersContainer: {
     flexDirection: "row",
-    paddingHorizontal: SPACING.l,
-    marginBottom: SPACING.m,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    backgroundColor: COLORS.background,
   },
   filterButton: {
     paddingHorizontal: SPACING.m,
-    paddingVertical: SPACING.xs,
+    paddingVertical: SPACING.s,
     marginRight: SPACING.s,
-    borderRadius: 16,
-    backgroundColor: COLORS.background,
+    borderRadius: 20,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
@@ -239,29 +263,32 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: FONT.sizes.s,
+    color: COLORS.text,
     fontWeight: "500",
-    color: COLORS.secondaryText,
   },
   activeFilterText: {
-    color: COLORS.card,
-  },
-  listContainer: {
-    padding: SPACING.l,
+    color: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+  listContainer: {
+    padding: SPACING.m,
+    paddingBottom: 100,
+  },
   emptyContainer: {
-    alignItems: "center",
+    flex: 1,
     justifyContent: "center",
-    padding: SPACING.xl,
+    alignItems: "center",
+    paddingTop: 100,
   },
   emptyText: {
-    fontSize: FONT.sizes.m,
+    fontSize: FONT.sizes.l,
     color: COLORS.secondaryText,
     marginTop: SPACING.m,
+    textAlign: "center",
   },
 });
 

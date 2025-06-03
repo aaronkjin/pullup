@@ -37,28 +37,6 @@ type ProfileNavigationProp = NativeStackNavigationProp<
 
 const ProfileScreen = ({ userInfo }: ProfileScreenProps) => {
   const navigation = useNavigation<ProfileNavigationProp>();
-  const [savedEvents, setSavedEvents] = useState<Event[]>([]);
-
-  // Refresh saved events when component mounts and whenever mockEvents changes
-  useEffect(() => {
-    const fetchSavedEvents = () => {
-      const filteredSavedEvents = mockEvents.filter((event) => event.saved);
-      setSavedEvents(filteredSavedEvents);
-    };
-
-    fetchSavedEvents();
-
-    // Add navigation listener to refresh when screen is focused
-    const unsubscribe = navigation.addListener("focus", () => {
-      fetchSavedEvents();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  const handleSavedEventPress = (eventId: string) => {
-    navigation.navigate("EventDetails", { eventId });
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -93,73 +71,9 @@ const ProfileScreen = ({ userInfo }: ProfileScreenProps) => {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>7</Text>
-              <Text style={styles.statLabel}>Wristbands</Text>
+              <Text style={styles.statLabel}>Events Created</Text>
             </View>
           </View>
-        </View>
-
-        {/* Saved Events */}
-        <View style={styles.savedEventsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Saved Events</Text>
-            <Text style={styles.savedCount}>
-              {savedEvents.length} event{savedEvents.length !== 1 ? "s" : ""}
-            </Text>
-          </View>
-
-          {savedEvents.length > 0 ? (
-            <FlatList
-              data={savedEvents}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.savedEventCard}
-                  onPress={() => handleSavedEventPress(item.id)}
-                  activeOpacity={0.8}
-                >
-                  <Image
-                    source={{ uri: item.imageUrl }}
-                    style={styles.savedEventImage}
-                  />
-                  <View style={styles.savedEventInfo}>
-                    <Text style={styles.savedEventTitle} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                    <Text style={styles.savedEventDate} numberOfLines={1}>
-                      {new Date(item.dateTime).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </Text>
-                    <View style={styles.savedEventMeta}>
-                      <Icon
-                        name="location"
-                        size={12}
-                        color={COLORS.secondaryText}
-                      />
-                      <Text style={styles.savedEventLocation} numberOfLines={1}>
-                        {item.location}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No saved events yet</Text>
-              }
-              style={styles.savedEventsList}
-            />
-          ) : (
-            <View style={styles.emptyStateContainer}>
-              <Icon name="bookmark-outline" size={48} color={COLORS.border} />
-              <Text style={styles.emptyText}>No saved events yet</Text>
-              <Text style={styles.emptySubtext}>
-                Events you bookmark will appear here
-              </Text>
-            </View>
-          )}
         </View>
 
         {/* Settings Section */}

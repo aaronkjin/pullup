@@ -23,15 +23,14 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
     location: backendEvent.timeLocation, // Backend combines time and location
     dateTime: new Date().toISOString(), // TODO: Extract proper date from timeLocation or update backend
     imageUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94', // Default event image
-    category: 'Other', // TODO: Add category to backend
     isPrivate: false, // TODO: Add privacy setting to backend
-    likes: 0, // TODO: Add likes to backend
-    userLiked: false, // TODO: Add user interaction to backend
-    saved: false, // TODO: Add saved status to backend
+    pullUpCount: 0, // TODO: Add pullUpCount to backend
+    userPulledUp: false, // TODO: Add user pull up status to backend
+    eventPassword: undefined, // TODO: Add event password for private events
   };
 };
 
-// API endpoints - these should match your FastAPI backend routes
+// API endpoints
 const ENDPOINTS = {
   // Events
   events: '/events',

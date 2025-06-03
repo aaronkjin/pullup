@@ -1,18 +1,9 @@
-/**
- * Generated via Cursor rules.
- * ------------------------------------------------------------------------------------------------ 
- * Typography constants used throughout the app.
- * These values ensure consistent text styles and font usage.
- * ------------------------------------------------------------------------------------------------
- */
-
 export const FONT = {
-  // Font families
-  primary: 'System',  // Default system font
-  secondary: 'System',  // Secondary font
-  monospace: 'Courier', // For code or technical content
+  primary: 'System',  
+  secondary: 'System',  
+  monospace: 'Courier', 
   
-  // Font weight aliases for semantic usage
+  // Font weight aliases
   weights: {
     thin: '200',
     light: '300',
@@ -25,22 +16,22 @@ export const FONT = {
   
   // Font sizes
   sizes: {
-    xs: 12,  // Extra small text (captions, footnotes)
-    s: 14,   // Small text (secondary information)
-    m: 16,   // Medium text (body text, main content)
-    l: 18,   // Large text (important content, section titles)
-    xl: 24,  // Extra large (screen titles, major headings)
-    xxl: 32, // Extra extra large (hero text, prominent display)
+    xs: 12, 
+    s: 14,  
+    m: 16,  
+    l: 18,  
+    xl: 24, 
+    xxl: 32, 
   },
   
   // Line heights
   lineHeights: {
-    tight: 1.2,    // Compact line spacing
-    normal: 1.5,   // Standard line spacing
-    relaxed: 1.8,  // More spacious line spacing
+    tight: 1.2,    
+    normal: 1.5,   
+    relaxed: 1.8,  
   },
   
-  // Text styles for common use cases
+  // Text styles
   styles: {
     h1: {
       fontSize: 32,
@@ -90,12 +81,7 @@ export const FONT = {
   },
 };
 
-/**
- * Helper function to get a complete text style
- * @param style - Style name from FONT.styles
- * @param color - Optional text color 
- * @returns Text style object with font properties
- */
+// Helper function to get a complete text style
 export function getTextStyle(style: keyof typeof FONT.styles, color?: string): object {
   const baseStyle = FONT.styles[style];
   return {

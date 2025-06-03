@@ -12,6 +12,8 @@ export const COLORS = {
   success: '#34C759', // Green for success
   warning: '#FF9500', // Orange for warnings
   error: '#FF3B30', // Red for errors
+  disabled: '#D1D1D6', // Disabled background
+  disabledText: '#C7C7CC', // Disabled text
 };
 
 export const SPACING = {

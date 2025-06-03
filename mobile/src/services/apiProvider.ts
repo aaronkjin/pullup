@@ -1,25 +1,23 @@
-import { Event, User, QRWristband } from '../types';
+import { Event, User } from '../types';
 
 // Both mock and real API services (for testing)
-import { EventApi as MockEventApi, QRWristbandApi as MockQRWristbandApi } from './api';
-import { EventApi as RealEventApi, QRWristbandApi as RealQRWristbandApi, AuthApi as RealAuthApi } from './realApi';
+import { EventApi as MockEventApi } from './api';
+import { EventApi as RealEventApi, AuthApi as RealAuthApi, QRWristbandApi as RealQRWristbandApi } from './realApi';
 
 // Config flag: false for real APIs, true for mock APIs during dev
-const USE_MOCK_API = true;
+const USE_MOCK_API = false;
 
 // Event API interface
 interface IEventApi {
   getEvents: (filters?: any) => Promise<Event[]>;
   getEventById: (id: string) => Promise<Event | null>;
+  togglePullUp: (id: string) => Promise<Event>;
+  getUserEvents: () => Promise<Event[]>;
+  getOrganizationEvents: () => Promise<Event[]>;
+  createEvent: (eventData: any) => Promise<Event>;
+  // Legacy methods
   toggleLike: (id: string) => Promise<Event>;
   toggleSaved: (id: string) => Promise<Event>;
-  createEvent: (eventData: any) => Promise<Event>;
-}
-
-// QR Wristband API interface
-interface IQRWristbandApi {
-  generateWristband: (eventId: string) => Promise<QRWristband>;
-  validateWristband: (code: string) => Promise<{ isValid: boolean; eventId?: string; userId?: string; message?: string }>;
 }
 
 // Auth API interface (only available for real API)
@@ -50,18 +48,28 @@ class EventApiProvider implements IEventApi {
     }
   }
 
-  async toggleLike(id: string): Promise<Event> {
+  async togglePullUp(id: string): Promise<Event> {
     if (USE_MOCK_API) {
-      return MockEventApi.toggleLike(id);
+      return MockEventApi.togglePullUp(id);
     }
-    return RealEventApi.toggleLike(id);
+    // For now, fall back to mock API for new methods
+    return MockEventApi.togglePullUp(id);
   }
 
-  async toggleSaved(id: string): Promise<Event> {
+  async getUserEvents(): Promise<Event[]> {
     if (USE_MOCK_API) {
-      return MockEventApi.toggleSaved(id);
+      return MockEventApi.getUserEvents();
     }
-    return RealEventApi.toggleSaved(id);
+    // For now, fall back to mock API for new methods
+    return MockEventApi.getUserEvents();
+  }
+
+  async getOrganizationEvents(): Promise<Event[]> {
+    if (USE_MOCK_API) {
+      return MockEventApi.getOrganizationEvents();
+    }
+    // For now, fall back to mock API for new methods
+    return MockEventApi.getOrganizationEvents();
   }
 
   async createEvent(eventData: any): Promise<Event> {
@@ -70,22 +78,17 @@ class EventApiProvider implements IEventApi {
     }
     return RealEventApi.createEvent(eventData);
   }
-}
 
-// Wrapper for QR Wristband API
-class QRWristbandApiProvider implements IQRWristbandApi {
-  async generateWristband(eventId: string): Promise<QRWristband> {
-    if (USE_MOCK_API) {
-      return MockQRWristbandApi.generateWristband(eventId);
-    }
-    return RealQRWristbandApi.generateWristband(eventId);
+  // Legacy methods for backward compatibility
+  async toggleLike(id: string): Promise<Event> {
+    return this.togglePullUp(id);
   }
 
-  async validateWristband(code: string): Promise<{ isValid: boolean; eventId?: string; userId?: string; message?: string }> {
+  async toggleSaved(id: string): Promise<Event> {
     if (USE_MOCK_API) {
-      return MockQRWristbandApi.validateWristband(code);
+      return MockEventApi.toggleSaved(id);
     }
-    return RealQRWristbandApi.validateWristband(code);
+    return RealEventApi.toggleSaved(id);
   }
 }
 
@@ -102,6 +105,7 @@ class AuthApiProvider implements IAuthApi {
           displayName: 'John Doe',
           profileImageUrl: 'https://via.placeholder.com/100',
           isOrganization: false,
+          userType: 'student',
         } as User,
       };
     }
@@ -127,6 +131,7 @@ class AuthApiProvider implements IAuthApi {
         displayName: 'John Doe',
         profileImageUrl: 'https://via.placeholder.com/100',
         isOrganization: false,
+        userType: 'student',
       } as User;
     }
     return RealAuthApi.getCurrentUser();
@@ -141,6 +146,7 @@ class AuthApiProvider implements IAuthApi {
         displayName: profileData.displayName || 'John Doe',
         profileImageUrl: profileData.profileImageUrl || 'https://via.placeholder.com/100',
         isOrganization: profileData.isOrganization || false,
+        userType: profileData.userType || 'student',
       } as User;
     }
     return RealAuthApi.updateProfile(profileData);
@@ -149,8 +155,10 @@ class AuthApiProvider implements IAuthApi {
 
 // Export config API providers
 export const EventApi = new EventApiProvider();
-export const QRWristbandApi = new QRWristbandApiProvider();
 export const AuthApi = new AuthApiProvider();
+
+// QRWristband API - use real API only since it's a specialized feature
+export const QRWristbandApi = RealQRWristbandApi;
 
 // Export config flag for components that need to know
 export { USE_MOCK_API };

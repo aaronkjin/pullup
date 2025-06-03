@@ -1,11 +1,3 @@
-/**
- * Generated via Cursor rules.
- * ------------------------------------------------------------------------------------------------
- * Standardized shadow styles for use throughout the app.
- * These provide consistent elevation effects for components.
- * ------------------------------------------------------------------------------------------------
- */
-
 import { Platform } from 'react-native';
 
 // Type definitions for shadow styles
@@ -32,7 +24,7 @@ const iosShadows: Record<ShadowSizes, IOSShadow> = {
     shadowRadius: 0,
   },
   
-  // Subtle shadow for subtle elevation
+  // Subtle shadow
   xs: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -73,7 +65,7 @@ const iosShadows: Record<ShadowSizes, IOSShadow> = {
   },
 };
 
-// Shadow definitions for Android (using elevation)
+// Shadow definitions for Android
 const androidShadows: Record<ShadowSizes, AndroidShadow> = {
   none: { elevation: 0 },
   xs: { elevation: 1 },
@@ -91,18 +83,13 @@ export const SHADOWS: PlatformShadows = Platform.OS === 'ios'
   ? iosShadows 
   : androidShadows;
 
-/**
- * Helper function to get shadow styles based on elevation level
- * @param size - Shadow size from 'none', 'xs', 's', 'm', 'l', 'xl'
- * @returns Platform-specific shadow styles
- */
+// Helper function to get shadow styles based on elevation level
 export function getShadow(size: ShadowSizes): IOSShadow | AndroidShadow {
   return SHADOWS[size] || SHADOWS.none;
 }
 
-/**
- * Predefined shadow styles for common components
- */
+
+// Predefined shadow styles for common components
 export const COMPONENT_SHADOWS = {
   card: getShadow('s'),
   modal: getShadow('l'),

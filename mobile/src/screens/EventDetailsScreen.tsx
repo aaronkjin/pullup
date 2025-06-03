@@ -56,28 +56,6 @@ const EventDetailsScreen = () => {
     }
   };
 
-  // Handle like
-  const handleLike = async () => {
-    if (!event) return;
-    try {
-      const updatedEvent = await EventApi.toggleLike(eventId);
-      setEvent(updatedEvent);
-    } catch (error) {
-      console.error("Failed to like:", error);
-    }
-  };
-
-  // Handle save
-  const handleSave = async () => {
-    if (!event) return;
-    try {
-      const updatedEvent = await EventApi.toggleSaved(eventId);
-      setEvent(updatedEvent);
-    } catch (error) {
-      console.error("Failed to save:", error);
-    }
-  };
-
   // Navigate to QR wristband screen
   const handleGetWristband = () => {
     navigation.navigate("QRWristband", { eventId });
@@ -163,9 +141,12 @@ const EventDetailsScreen = () => {
               <Text style={styles.detailText}>{event.location}</Text>
             </View>
 
-            <View style={styles.categoryContainer}>
-              <Text style={styles.category}>{event.category}</Text>
-            </View>
+            {event.isPrivate && (
+              <View style={styles.privateContainer}>
+                <Icon name="lock-closed" size={16} color={COLORS.primary} />
+                <Text style={styles.privateText}>Private Event</Text>
+              </View>
+            )}
           </View>
 
           {/* Description */}
@@ -174,71 +155,29 @@ const EventDetailsScreen = () => {
             <Text style={styles.description}>{event.description}</Text>
           </View>
 
-          {/* Actions */}
+          {/* Pull Up Info */}
+          <View style={styles.pullUpContainer}>
+            <Icon name="person" size={20} color={COLORS.primary} />
+            <Text style={styles.pullUpCount}>{event.pullUpCount}</Text>
+            <Text style={styles.pullUpText}>people pulling up</Text>
+          </View>
+
+          {/* Action - Share only */}
           <View style={styles.actionsContainer}>
-            <View style={styles.votesContainer}>
-              <TouchableOpacity style={styles.voteButton} onPress={handleLike}>
-                <Icon
-                  name={event.userLiked ? "heart" : "heart-outline"}
-                  size={28}
-                  color={
-                    event.userLiked ? COLORS.primary : COLORS.secondaryText
-                  }
-                />
-                <Text
-                  style={[
-                    styles.voteCount,
-                    event.userLiked && styles.activeVoteCount,
-                  ]}
-                >
-                  {event.likes}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={handleSave}
-              >
-                <Icon
-                  name={event.saved ? "bookmark" : "bookmark-outline"}
-                  size={24}
-                  color={event.saved ? COLORS.primary : COLORS.secondaryText}
-                />
-                <Text
-                  style={[
-                    styles.actionText,
-                    event.saved && styles.activeActionText,
-                  ]}
-                >
-                  {event.saved ? "Saved" : "Save"}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.actionButton}
-                // TODO: Need to share event here
-                onPress={() => {}}
-              >
-                <Icon
-                  name="share-social-outline"
-                  size={24}
-                  color={COLORS.secondaryText}
-                />
-                <Text style={styles.actionText}>Share</Text>
-              </TouchableOpacity>
-
-              {event.isPrivate && (
-                <TouchableOpacity
-                  style={styles.wristbandButton}
-                  onPress={handleGetWristband}
-                >
-                  <Icon name="qr-code" size={20} color="#FFF" />
-                  <Text style={styles.wristbandButtonText}>Get Wristband</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={() => {
+                // TODO: Implement share functionality
+                console.log("Share event:", event.id);
+              }}
+            >
+              <Icon
+                name="share-social-outline"
+                size={24}
+                color={COLORS.primary}
+              />
+              <Text style={styles.shareButtonText}>Share Event</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -327,15 +266,16 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryText,
     marginLeft: SPACING.xs,
   },
-  categoryContainer: {
-    alignSelf: "flex-start",
+  privateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#F0F7FF",
     paddingHorizontal: SPACING.s,
     paddingVertical: 4,
     borderRadius: 12,
     marginTop: SPACING.s,
   },
-  category: {
+  privateText: {
     fontSize: FONT.sizes.xs,
     color: COLORS.primary,
     fontWeight: "500",
@@ -354,50 +294,29 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     lineHeight: 24,
   },
+  pullUpContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.l,
+  },
+  pullUpCount: {
+    fontSize: FONT.sizes.m,
+    fontWeight: "600",
+    color: COLORS.secondaryText,
+    marginLeft: SPACING.xs,
+  },
+  pullUpText: {
+    fontSize: FONT.sizes.s,
+    color: COLORS.secondaryText,
+    marginLeft: SPACING.xs,
+  },
   actionsContainer: {
     marginBottom: SPACING.l,
     paddingBottom: SPACING.l,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  votesContainer: {
-    flexDirection: "row",
-    marginBottom: SPACING.m,
-  },
-  voteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: SPACING.l,
-  },
-  voteCount: {
-    fontSize: FONT.sizes.m,
-    fontWeight: "600",
-    color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
-  },
-  activeVoteCount: {
-    color: COLORS.primary,
-  },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: SPACING.l,
-    marginBottom: SPACING.s,
-  },
-  actionText: {
-    fontSize: FONT.sizes.s,
-    color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
-  },
-  activeActionText: {
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  wristbandButton: {
+  shareButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: COLORS.primary,
@@ -405,7 +324,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs,
     borderRadius: 20,
   },
-  wristbandButtonText: {
+  shareButtonText: {
     fontSize: FONT.sizes.s,
     fontWeight: "600",
     color: "#FFF",

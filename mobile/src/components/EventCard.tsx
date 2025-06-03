@@ -14,8 +14,8 @@ import { COLORS, SPACING, FONT } from "../utils/theme";
 interface EventCardProps {
   event: Event;
   onPress: (eventId: string) => void;
-  onLike: (eventId: string) => void;
-  onSave: (eventId: string) => void;
+  onPullUp?: (eventId: string) => void;
+  userType?: "student" | "organization";
 }
 
 const { width } = Dimensions.get("window");
@@ -23,8 +23,8 @@ const { width } = Dimensions.get("window");
 const EventCard: React.FC<EventCardProps> = ({
   event,
   onPress,
-  onLike,
-  onSave,
+  onPullUp,
+  userType = "student",
 }) => {
   // Format date
   const formatDate = (dateString: string) => {
@@ -88,41 +88,66 @@ const EventCard: React.FC<EventCardProps> = ({
           <Text style={styles.location}>{event.location}</Text>
         </View>
 
-        {/* Category */}
-        <View style={styles.categoryContainer}>
-          <Text style={styles.category}>{event.category}</Text>
-        </View>
-
-        {/* Action buttons */}
+        {/* Pull up counter and action */}
         <View style={styles.actionsContainer}>
-          {/* Like */}
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => onLike(event.id)}
-          >
-            <Ionicons
-              name={event.userLiked ? "heart" : "heart-outline"}
-              size={24}
-              color={event.userLiked ? COLORS.primary : COLORS.secondaryText}
-            />
-            <Text
-              style={[styles.actionText, event.userLiked && styles.activeText]}
-            >
-              {event.likes}
-            </Text>
-          </TouchableOpacity>
+          {/* Pull Up Counter */}
+          <View style={styles.pullUpContainer}>
+            <Ionicons name="person" size={20} color={COLORS.primary} />
+            <Text style={styles.pullUpCount}>{event.pullUpCount}</Text>
+            <Text style={styles.pullUpText}>pulling up</Text>
+          </View>
 
-          {/* Save */}
-          <TouchableOpacity
-            style={[styles.actionButton, styles.saveButton]}
-            onPress={() => onSave(event.id)}
-          >
-            <Ionicons
-              name={event.saved ? "bookmark" : "bookmark-outline"}
-              size={22}
-              color={event.saved ? COLORS.primary : COLORS.secondaryText}
-            />
-          </TouchableOpacity>
+          {/* Pull Up Button (only for students) */}
+          {userType === "student" && onPullUp && (
+            <TouchableOpacity
+              style={[
+                styles.pullUpButton,
+                event.userPulledUp && styles.pullUpButtonActive,
+                event.isPrivate &&
+                  !event.userPulledUp &&
+                  styles.pullUpButtonDisabled,
+              ]}
+              onPress={() => {
+                if (!event.isPrivate) {
+                  onPullUp(event.id);
+                }
+              }}
+              disabled={event.isPrivate && !event.userPulledUp}
+            >
+              <Ionicons
+                name={
+                  event.isPrivate && !event.userPulledUp
+                    ? "lock-closed"
+                    : event.userPulledUp
+                    ? "checkmark"
+                    : "add"
+                }
+                size={16}
+                color={
+                  event.isPrivate && !event.userPulledUp
+                    ? COLORS.secondaryText
+                    : event.userPulledUp
+                    ? COLORS.background
+                    : COLORS.primary
+                }
+              />
+              <Text
+                style={[
+                  styles.pullUpButtonText,
+                  event.userPulledUp && styles.pullUpButtonTextActive,
+                  event.isPrivate &&
+                    !event.userPulledUp &&
+                    styles.pullUpButtonTextDisabled,
+                ]}
+              >
+                {event.isPrivate && !event.userPulledUp
+                  ? "Locked"
+                  : event.userPulledUp
+                  ? "Going"
+                  : "Pull Up"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -200,51 +225,62 @@ const styles = StyleSheet.create({
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.s,
-  },
-  location: {
-    fontSize: FONT.sizes.xs,
-    color: COLORS.secondaryText,
-    marginLeft: 4,
-  },
-  categoryContainer: {
-    alignSelf: "flex-start",
-    backgroundColor: "#F0F7FF",
-    paddingHorizontal: SPACING.s,
-    paddingVertical: 4,
-    borderRadius: 12,
     marginBottom: SPACING.m,
   },
-  category: {
-    fontSize: FONT.sizes.xs,
-    color: COLORS.primary,
-    fontWeight: "500",
+  location: {
+    fontSize: FONT.sizes.s,
+    color: COLORS.secondaryText,
+    marginLeft: 4,
   },
   actionsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    paddingTop: SPACING.s,
+    alignItems: "center",
   },
-  actionButton: {
+  pullUpContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SPACING.xs,
-    marginRight: SPACING.l,
   },
-  actionText: {
+  pullUpCount: {
+    fontSize: FONT.sizes.s,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginLeft: 4,
+  },
+  pullUpText: {
     fontSize: FONT.sizes.s,
     color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
+    marginLeft: 4,
   },
-  activeText: {
+  pullUpButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    borderRadius: 20,
+  },
+  pullUpButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  pullUpButtonDisabled: {
+    backgroundColor: "#F8F8F8",
+    borderColor: "#F8F8F8",
+  },
+  pullUpButtonText: {
+    fontSize: FONT.sizes.s,
+    fontWeight: "600",
     color: COLORS.primary,
-    fontWeight: "500",
+    marginLeft: 4,
   },
-  saveButton: {
-    marginLeft: "auto",
-    marginRight: 0,
+  pullUpButtonTextActive: {
+    color: COLORS.background,
+  },
+  pullUpButtonTextDisabled: {
+    color: COLORS.secondaryText,
   },
 });
 

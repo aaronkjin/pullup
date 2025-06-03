@@ -11,123 +11,142 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { TabBarIconProps } from "@react-navigation/bottom-tabs";
 
-import { RootStackParamList } from "../types";
+import {
+  RootStackParamList,
+  StudentTabParamList,
+  OrganizationTabParamList,
+} from "../types";
 import { COLORS } from "../utils/theme";
+import { UserProvider } from "../contexts/UserContext";
 
 // Screens
 import HomeScreen from "../screens/HomeScreen";
-import EventDetailsScreen from "../screens/EventDetailsScreen";
+import MyEventsScreen from "../screens/MyEventsScreen";
 import CreateEventScreen from "../screens/CreateEventScreen";
-import ProfileScreen from "../screens/ProfileScreen";
-import QRWristbandScreen from "../screens/QRWristbandScreen";
-import ScanQRScreen from "../screens/ScanQRScreen";
-import TopEventsScreen from "../screens/TopEventsScreen";
+import EventDetailsScreen from "../screens/EventDetailsScreen";
 import WelcomeScreen from "../screens/WelcomeScreen";
 import LoginScreen from "../screens/LoginScreen";
 
 interface UserInfo {
-  name?: string;
-  picture?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
+  userType?: "student" | "organization";
 }
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const StudentTab = createBottomTabNavigator();
+const OrganizationTab = createBottomTabNavigator();
 
-// Define ParamList for MainTabNavigator
-export type MainTabParamList = {
-  Home: undefined;
-  TopEvents: undefined;
-  CreateEvent: undefined;
-  ScanQR: undefined;
-  Profile: undefined; // userInfo will be passed as a prop directly, not a route param here
-};
-
-interface MainTabNavigatorProps {
+interface StudentTabNavigatorProps {
   userInfo: UserInfo | null;
 }
 
-// Bottom Tab Navigator
-const MainTabNavigator = ({ userInfo }: MainTabNavigatorProps) => {
+// Student Tab Navigator (Home + My Events)
+const StudentTabNavigator = ({ userInfo }: StudentTabNavigatorProps) => {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.secondaryText,
-        tabBarStyle: {
-          backgroundColor: COLORS.card,
-          borderTopColor: COLORS.border,
-          paddingBottom: 8,
-          height: 80,
-          paddingTop: 8,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-          paddingBottom: 4,
-        },
-        tabBarIconStyle: {
-          marginTop: -8,
-        },
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarIcon: ({ color, size }: TabBarIconProps) => (
-            <Ionicons name="home" color={color} size={size} />
-          ),
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen
-        name="TopEvents"
-        component={TopEventsScreen}
-        options={{
-          title: "Top Events",
-          tabBarIcon: ({ color, size }: TabBarIconProps) => (
-            <Ionicons name="trophy" color={color} size={size} />
-          ),
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen
-        name="CreateEvent"
-        component={CreateEventScreen}
-        options={{
-          title: "Create",
-          tabBarIcon: ({ color, size }: TabBarIconProps) => (
-            <Ionicons name="add-circle" color={color} size={size} />
-          ),
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen
-        name="ScanQR"
-        component={ScanQRScreen}
-        options={{
-          title: "Scan",
-          tabBarIcon: ({ color, size }: TabBarIconProps) => (
-            <Ionicons name="qr-code" color={color} size={size} />
-          ),
-          headerShown: false,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        options={{
-          tabBarIcon: ({ color, size }: TabBarIconProps) => (
-            <Ionicons name="person" color={color} size={size} />
-          ),
-          headerShown: false,
+    <UserProvider userInfo={userInfo} setUserInfo={() => {}}>
+      <StudentTab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: COLORS.primary,
+          tabBarInactiveTintColor: COLORS.secondaryText,
+          tabBarStyle: {
+            backgroundColor: COLORS.card,
+            borderTopColor: COLORS.border,
+            paddingBottom: 8,
+            height: 80,
+            paddingTop: 8,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "500",
+            paddingBottom: 4,
+          },
+          tabBarIconStyle: {
+            marginTop: -8,
+          },
         }}
       >
-        {(props: BottomTabScreenProps<MainTabParamList, "Profile">) => (
-          <ProfileScreen {...props} userInfo={userInfo} />
-        )}
-      </Tab.Screen>
-    </Tab.Navigator>
+        <StudentTab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            tabBarIcon: ({ color, size }: TabBarIconProps) => (
+              <Ionicons name="home" color={color} size={size} />
+            ),
+            headerShown: false,
+          }}
+        />
+        <StudentTab.Screen
+          name="MyEvents"
+          component={MyEventsScreen}
+          options={{
+            title: "My Events",
+            tabBarIcon: ({ color, size }: TabBarIconProps) => (
+              <Ionicons name="calendar" color={color} size={size} />
+            ),
+            headerShown: false,
+          }}
+        />
+      </StudentTab.Navigator>
+    </UserProvider>
+  );
+};
+
+interface OrganizationTabNavigatorProps {
+  userInfo: UserInfo | null;
+}
+
+// Organization Tab Navigator (My Events + Create)
+const OrganizationTabNavigator = ({
+  userInfo,
+}: OrganizationTabNavigatorProps) => {
+  return (
+    <UserProvider userInfo={userInfo} setUserInfo={() => {}}>
+      <OrganizationTab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: COLORS.primary,
+          tabBarInactiveTintColor: COLORS.secondaryText,
+          tabBarStyle: {
+            backgroundColor: COLORS.card,
+            borderTopColor: COLORS.border,
+            paddingBottom: 8,
+            height: 80,
+            paddingTop: 8,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "500",
+            paddingBottom: 4,
+          },
+          tabBarIconStyle: {
+            marginTop: -8,
+          },
+        }}
+      >
+        <OrganizationTab.Screen
+          name="MyEvents"
+          component={MyEventsScreen}
+          options={{
+            title: "My Events",
+            tabBarIcon: ({ color, size }: TabBarIconProps) => (
+              <Ionicons name="calendar" color={color} size={size} />
+            ),
+            headerShown: false,
+          }}
+        />
+        <OrganizationTab.Screen
+          name="Create"
+          component={CreateEventScreen}
+          options={{
+            tabBarIcon: ({ color, size }: TabBarIconProps) => (
+              <Ionicons name="add-circle" color={color} size={size} />
+            ),
+            headerShown: false,
+          }}
+        />
+      </OrganizationTab.Navigator>
+    </UserProvider>
   );
 };
 
@@ -185,25 +204,37 @@ const AppNavigator = ({
           </>
         ) : (
           <>
-            <Stack.Screen name="Main" options={{ headerShown: false }}>
-              {(props: NativeStackScreenProps<RootStackParamList, "Main">) => (
-                <MainTabNavigator {...props} userInfo={userInfo} />
-              )}
-            </Stack.Screen>
-            <Stack.Screen
-              name="EventDetails"
-              component={EventDetailsScreen}
-              options={{
-                title: "",
-                headerBackTitle: "Back",
-                headerTransparent: true,
-              }}
-            />
-            <Stack.Screen
-              name="QRWristband"
-              component={QRWristbandScreen}
-              options={{ title: "Event Wristband" }}
-            />
+            {/* Student Interface */}
+            {userInfo?.userType === "student" && (
+              <Stack.Screen name="Main" options={{ headerShown: false }}>
+                {(
+                  props: NativeStackScreenProps<RootStackParamList, "Main">
+                ) => <StudentTabNavigator {...props} userInfo={userInfo} />}
+              </Stack.Screen>
+            )}
+
+            {/* Organization Interface */}
+            {userInfo?.userType === "organization" && (
+              <>
+                <Stack.Screen name="Main" options={{ headerShown: false }}>
+                  {(
+                    props: NativeStackScreenProps<RootStackParamList, "Main">
+                  ) => (
+                    <OrganizationTabNavigator {...props} userInfo={userInfo} />
+                  )}
+                </Stack.Screen>
+
+                {/* Organization-only screens */}
+                <Stack.Screen
+                  name="EventDetails"
+                  component={EventDetailsScreen}
+                  options={{
+                    title: "Event Details",
+                    headerBackTitle: "Back",
+                  }}
+                />
+              </>
+            )}
           </>
         )}
       </Stack.Navigator>

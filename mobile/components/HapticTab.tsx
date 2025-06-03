@@ -3,7 +3,7 @@ import { PlatformPressable } from "@react-navigation/elements";
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
 
-// TODO: : : : Soft haptic feedback when pressing down on tabs
+// TODO: Soft haptic feedback when pressing down on tabs
 export function HapticTab(props: any) {
   return (
     <PlatformPressable

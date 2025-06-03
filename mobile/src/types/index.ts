@@ -4,6 +4,7 @@ export interface User {
   displayName: string;
   isOrganization: boolean;
   profileImageUrl?: string;
+  userType: 'student' | 'organization';
 }
 
 export interface Event {
@@ -16,11 +17,10 @@ export interface Event {
   location: string;
   dateTime: string;
   imageUrl?: string;
-  category: string;
   isPrivate: boolean;
-  likes: number;
-  userLiked: boolean;
-  saved: boolean;
+  pullUpCount: number;
+  userPulledUp: boolean;
+  eventPassword?: string;
 }
 
 export interface QRWristband {
@@ -29,7 +29,18 @@ export interface QRWristband {
   userId: string;
   code: string;
   createdAt: string;
-  isActive: boolean;
+  expiresAt: string;
+}
+
+export interface EventParticipant {
+  id: string;
+  eventId: string;
+  userId: string;
+  username: string;
+  displayName: string;
+  isConfirmed: boolean;
+  registeredAt: string;
+  studentPassword?: string;
 }
 
 export type RootStackParamList = {
@@ -38,5 +49,14 @@ export type RootStackParamList = {
   CreateEvent: undefined;
   Profile: undefined;
   QRWristband: { eventId: string };
-  ScanQR: undefined;
+};
+
+export type StudentTabParamList = {
+  Home: undefined;
+  MyEvents: undefined;
+};
+
+export type OrganizationTabParamList = {
+  MyEvents: undefined;
+  Create: undefined;
 }; 
