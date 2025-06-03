@@ -2,15 +2,14 @@ import React, { useState, useEffect } from "react";
 import { LogBox } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider as PaperProvider } from "react-native-paper";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { GOOGLE_CLIENT_ID } from "./src/utils/config";
 import AppNavigator from "./src/navigation";
 import { theme } from "./src/utils/theme";
 
 interface UserInfo {
-  name?: string;
-  picture?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
+  userType?: 'student' | 'organization';
 }
 
 // Ignore warnings below for MVP
@@ -26,17 +25,15 @@ export default function App() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <SafeAreaProvider>
-        <PaperProvider theme={theme}>
-          <AppNavigator
-            isAuthenticated={isAuthenticated}
-            setIsAuthenticated={setIsAuthenticated}
-            userInfo={userInfo}
-            setUserInfo={setUserInfo}
-          />
-        </PaperProvider>
-      </SafeAreaProvider>
-    </GoogleOAuthProvider>
+    <SafeAreaProvider>
+      <PaperProvider theme={theme}>
+        <AppNavigator
+          isAuthenticated={isAuthenticated}
+          setIsAuthenticated={setIsAuthenticated}
+          userInfo={userInfo}
+          setUserInfo={setUserInfo}
+        />
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
