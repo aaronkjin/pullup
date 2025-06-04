@@ -1,8 +1,9 @@
 import { Event, User } from '../types';
 
 // Both mock and real API services (for testing)
-import { EventApi as MockEventApi } from './api';
+import { EventApi as MockEventApi, setCurrentMockUser } from './api';
 import { EventApi as RealEventApi, AuthApi as RealAuthApi, QRWristbandApi as RealQRWristbandApi } from './realApi';
+import { mockUsers } from './mockData';
 
 // Config flag: false for real APIs, true for mock APIs during dev
 const USE_MOCK_API = false;
@@ -13,7 +14,7 @@ interface IEventApi {
   getEventById: (id: string) => Promise<Event | null>;
   togglePullUp: (id: string) => Promise<Event>;
   getUserEvents: () => Promise<Event[]>;
-  getOrganizationEvents: () => Promise<Event[]>;
+  getOrganizationEvents: (userInfo?: any) => Promise<Event[]>;
   createEvent: (eventData: any) => Promise<Event>;
   // Legacy methods
   toggleLike: (id: string) => Promise<Event>;
@@ -30,6 +31,26 @@ interface IAuthApi {
 
 // Wrapper for Event API
 class EventApiProvider implements IEventApi {
+  // Sync current user context with mock API (for testing)
+  private syncMockUser(userInfo?: any) {
+    if (USE_MOCK_API && userInfo) {
+      // Try to find matching mock user based on userType and name
+      const mockUser = mockUsers.find(user => {
+        if (userInfo.userType === 'organization') {
+          return user.userType === 'organization' && 
+                 (user.displayName.toLowerCase().includes(userInfo.organizationName?.toLowerCase() || '') ||
+                  user.username.toLowerCase().includes(userInfo.organizationName?.toLowerCase() || ''));
+        } else {
+          return user.userType === 'student';
+        }
+      });
+      
+      if (mockUser) {
+        setCurrentMockUser(mockUser);
+      }
+    }
+  }
+
   async getEvents(filters?: any): Promise<Event[]> {
     if (USE_MOCK_API) {
       return MockEventApi.getEvents();
@@ -52,24 +73,25 @@ class EventApiProvider implements IEventApi {
     if (USE_MOCK_API) {
       return MockEventApi.togglePullUp(id);
     }
-    // For now, fall back to mock API for new methods
-    return MockEventApi.togglePullUp(id);
+    // Use real API implementation
+    return RealEventApi.togglePullUp(id);
   }
 
   async getUserEvents(): Promise<Event[]> {
     if (USE_MOCK_API) {
       return MockEventApi.getUserEvents();
     }
-    // For now, fall back to mock API for new methods
-    return MockEventApi.getUserEvents();
+    // Use real API implementation
+    return RealEventApi.getUserEvents();
   }
 
-  async getOrganizationEvents(): Promise<Event[]> {
+  async getOrganizationEvents(userInfo?: any): Promise<Event[]> {
+    this.syncMockUser(userInfo);
     if (USE_MOCK_API) {
       return MockEventApi.getOrganizationEvents();
     }
-    // For now, fall back to mock API for new methods
-    return MockEventApi.getOrganizationEvents();
+    // Use real API implementation
+    return RealEventApi.getOrganizationEvents();
   }
 
   async createEvent(eventData: any): Promise<Event> {

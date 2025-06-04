@@ -52,6 +52,7 @@ export const mockEvents: Event[] = [
     pullUpCount: 125,
     userPulledUp: true,
     eventPassword: undefined,
+    created_at: String(Math.floor(Date.now() / 1000) - 86400), // 1 day ago
   },
   {
     id: 'event2',
@@ -67,6 +68,7 @@ export const mockEvents: Event[] = [
     pullUpCount: 87,
     userPulledUp: false,
     eventPassword: undefined,
+    created_at: String(Math.floor(Date.now() / 1000) - 172800), // 2 days ago
   },
   {
     id: 'event3',
@@ -82,6 +84,7 @@ export const mockEvents: Event[] = [
     pullUpCount: 45,
     userPulledUp: false,
     eventPassword: 'MIXER2025',
+    created_at: String(Math.floor(Date.now() / 1000) - 259200), // 3 days ago
   },
   {
     id: 'event4',
@@ -97,6 +100,7 @@ export const mockEvents: Event[] = [
     pullUpCount: 62,
     userPulledUp: false,
     eventPassword: undefined,
+    created_at: String(Math.floor(Date.now() / 1000) - 43200), // 12 hours ago
   },
   {
     id: 'event5',
@@ -112,5 +116,6 @@ export const mockEvents: Event[] = [
     pullUpCount: 94,
     userPulledUp: true,
     eventPassword: undefined,
+    created_at: String(Math.floor(Date.now() / 1000) - 3600), // 1 hour ago
   },
 ]; 

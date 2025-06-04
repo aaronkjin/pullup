@@ -9,6 +9,11 @@ interface BackendEvent {
   name: string;
   timeLocation: string;
   description: string;
+  pullUpCount?: number;
+  userPulledUp?: boolean;
+  isPrivate?: boolean;
+  imageUrl?: string;
+  created_at?: string;
 }
 
 // Transform backend event response to frontend Event type
@@ -22,11 +27,12 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
     organizerImageUrl: `https://logo.clearbit.com/${backendEvent.orgName.toLowerCase().replace(/\s+/g, '')}.edu`, // Default org image
     location: backendEvent.timeLocation, // Backend combines time and location
     dateTime: new Date().toISOString(), // TODO: Extract proper date from timeLocation or update backend
-    imageUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94', // Default event image
-    isPrivate: false, // TODO: Add privacy setting to backend
-    pullUpCount: 0, // TODO: Add pullUpCount to backend
-    userPulledUp: false, // TODO: Add user pull up status to backend
+    imageUrl: backendEvent.imageUrl || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94', // Default event image
+    isPrivate: backendEvent.isPrivate || false, // TODO: Add privacy setting to backend
+    pullUpCount: backendEvent.pullUpCount || 0, // TODO: Add pullUpCount to backend
+    userPulledUp: backendEvent.userPulledUp || false, // TODO: Add user pull up status to backend
     eventPassword: undefined, // TODO: Add event password for private events
+    created_at: backendEvent.created_at || String(Math.floor(Date.now() / 1000)), // Use backend timestamp or current time
   };
 };
 
@@ -133,6 +139,24 @@ export const EventApi = {
   deleteEvent: async (id: string): Promise<void> => {
     return await del<void>(ENDPOINTS.event(id));
   },
+
+  // Toggle pull up for an event (new method)
+  togglePullUp: async (id: string): Promise<Event> => {
+    const backendEvent = await post<BackendEvent>(`${ENDPOINTS.event(id)}/pullup`);
+    return transformBackendEvent(backendEvent);
+  },
+
+  // Get events for current user (students - their registered events)
+  getUserEvents: async (): Promise<Event[]> => {
+    const backendEvents = await get<BackendEvent[]>(`${ENDPOINTS.events}/user`);
+    return backendEvents.map(transformBackendEvent);
+  },
+
+  // Get events for organization (their created events)
+  getOrganizationEvents: async (): Promise<Event[]> => {
+    const backendEvents = await get<BackendEvent[]>(`${ENDPOINTS.events}/organization`);
+    return backendEvents.map(transformBackendEvent);
+  },
 };
 
 export const QRWristbandApi = {
@@ -200,4 +224,4 @@ export const handleApiError = (error: any): string => {
     return error.message;
   }
   return 'An unexpected error occurred';
-}; 
+};

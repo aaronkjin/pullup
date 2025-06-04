@@ -5,6 +5,23 @@
 import { Event, User } from '../types';
 import { mockEvents, mockUsers } from './mockData';
 
+// Current user simulation for mock API
+let currentMockUser: User | null = null;
+
+// Helper to get current mock user
+const getCurrentMockUser = (): User | null => {
+  if (!currentMockUser) {
+    // Default to the first org for testing
+    currentMockUser = mockUsers.find(user => user.userType === 'organization') || mockUsers[0];
+  }
+  return currentMockUser;
+};
+
+// Helper to set current mock user (for testing different user types)
+export const setCurrentMockUser = (user: User) => {
+  currentMockUser = user;
+};
+
 // Simulate network delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -55,19 +72,24 @@ export const EventApi = {
   // Get events for organization (their created events)
   getOrganizationEvents: async (): Promise<Event[]> => {
     await delay(400);
-    // TODO: Filter by current organization when auth is implemented
-    // For now, return all events as if they were created by current org
-    return [...mockEvents];
+    const currentUser = getCurrentMockUser();
+    if (!currentUser || currentUser.userType !== 'organization') {
+      return [];
+    }
+    // Filter events created by current organization
+    return mockEvents.filter(event => event.organizerId === currentUser.id);
   },
 
   // Create new event (for org users)
-  createEvent: async (eventData: Omit<Event, 'id' | 'pullUpCount' | 'userPulledUp'>): Promise<Event> => {
+  createEvent: async (eventData: Omit<Event, 'id' | 'pullUpCount' | 'userPulledUp' | 'created_at'>): Promise<Event> => {
     await delay(800);
+    const created_at = String(Math.floor(Date.now() / 1000));
     const newEvent: Event = {
       ...eventData,
       id: `event${mockEvents.length + 1}`,
       pullUpCount: 0,
       userPulledUp: false,
+      created_at,
     };
     
     // Add to mock data
