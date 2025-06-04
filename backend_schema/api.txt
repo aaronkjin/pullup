@@ -1,5 +1,3 @@
-Revised:
-
 Event Endpoints
 
 GET /events - Get all events (sorted by feed algo)
@@ -23,40 +21,3 @@ POST /students/create - Create a new student
     -name,email,password
 POST /students/login - check email password
     -email,password
-
-
-Original:
-
-Student Endpoints
-
-GET /students - Get all students
-POST /students - Create a new student
-GET /students/{studentId} - Get a specific student
-PUT /students/{studentId} - Update a student
-DELETE /students/{studentId} - Delete a student
-
-Organization Endpoints
-
-GET /orgs - Get all organizations
-POST /orgs - Create a new organization
-GET /orgs/{orgId} - Get a specific organization
-PUT /orgs/{orgId} - Update an organization
-DELETE /orgs/{orgId} - Delete an organization
-
-Event Endpoints
-
-GET /events - Get all events (sorted by feed algo)
-POST /events - Create a new event
-GET /events/{eventId} - Get a specific event
-PUT /events/{eventId} - Update an event
-DELETE /events/{eventId} - Delete an event
-#get all events corresponding to an org 
-
-Student-Event Relationship Endpoints
-
-GET /students-events - Get all student-event registrations
-POST /students-events - Register a student for an event
-DELETE /students-events/{studentId}/{eventId} - Unregister a student from an event
-GET /students-events/student/{studentId} - Get all events for a specific student
-GET /students-events/event/{eventId} - Get all students registered for a specific event
-

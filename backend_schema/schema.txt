@@ -1,5 +1,3 @@
-Revised:
-
 CREATE TABLE Events (
     event_id SERIAL PRIMARY KEY,
     org_id INTEGER NOT NULL,
@@ -32,49 +30,3 @@ CREATE TABLE Students (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
-
-Original:
-
--- Students table
-CREATE TABLE Students (
-    student_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE
-    #password
-);
-
--- Organizations table
-CREATE TABLE Orgs (
-    org_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT
-);
-
--- Events table
-CREATE TABLE Events (
-    event_id SERIAL PRIMARY KEY,
-    org_id INTEGER NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    #time 
-    #location
-    description TEXT,
-    participant_count,
-    image_url,
-    pub/private,
-    passcode
-    FOREIGN KEY (org_id) REFERENCES Orgs(org_id)
-    
-);
-
--- Junction table for Students and Events (many-to-many relationship)
-CREATE TABLE Students_Events (
-    student_id INTEGER NOT NULL,
-    event_id INTEGER NOT NULL,
-    passcode,
-    registered?,
-    PRIMARY KEY (student_id, event_id),
-    FOREIGN KEY (student_id) REFERENCES Students(student_id),
-    FOREIGN KEY (event_id) REFERENCES Events(event_id)
-);
-#registered boolean that keeps track
-#need code that is hash to register people from ui side
