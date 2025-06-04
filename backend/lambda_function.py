@@ -264,7 +264,7 @@ def check_student_password(body):
         return build_response(500, {'error': 'Failed to check password'})
 
 
-def register_student_for_event(body):
+def pu_student_for_event(body):
     try:
 
         conn = get_db_connection()
