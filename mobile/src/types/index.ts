@@ -21,6 +21,7 @@ export interface Event {
   pullUpCount: number;
   userPulledUp: boolean;
   eventPassword?: string;
+  created_at: string;
 }
 
 export interface QRWristband {
