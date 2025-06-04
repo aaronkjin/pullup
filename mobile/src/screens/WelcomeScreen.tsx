@@ -1,39 +1,45 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { COLORS, SPACING, FONT } from '../utils/theme';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { COLORS, SPACING, FONT } from "../utils/theme";
 
 interface WelcomeScreenProps {
   navigation: any;
 }
 
 const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
-  const [selectedUserType, setSelectedUserType] = useState<'student' | 'organization' | null>(null);
+  const [selectedUserType, setSelectedUserType] = useState<
+    "student" | "organization" | null
+  >(null);
 
   const handleNext = () => {
     if (selectedUserType) {
-      navigation.navigate('Login', { userType: selectedUserType });
+      navigation.navigate("Login", { userType: selectedUserType });
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Pullup</Text>
-      <Text style={styles.subtitle}>The go-to place for finding and sharing campus events.</Text>
-      
+      <Text style={styles.subtitle}>
+        The go-to place for finding and sharing campus events.
+      </Text>
+
       <Text style={styles.questionText}>I am a...</Text>
-      
+
       <View style={styles.optionsContainer}>
         <TouchableOpacity
           style={[
             styles.optionCard,
-            selectedUserType === 'student' && styles.selectedCard
+            selectedUserType === "student" && styles.selectedCard,
           ]}
-          onPress={() => setSelectedUserType('student')}
+          onPress={() => setSelectedUserType("student")}
         >
-          <Text style={[
-            styles.optionTitle,
-            selectedUserType === 'student' && styles.selectedText
-          ]}>
+          <Text
+            style={[
+              styles.optionTitle,
+              selectedUserType === "student" && styles.selectedText,
+            ]}
+          >
             Student
           </Text>
           <Text style={styles.optionSubtitle}>
@@ -44,14 +50,16 @@ const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
         <TouchableOpacity
           style={[
             styles.optionCard,
-            selectedUserType === 'organization' && styles.selectedCard
+            selectedUserType === "organization" && styles.selectedCard,
           ]}
-          onPress={() => setSelectedUserType('organization')}
+          onPress={() => setSelectedUserType("organization")}
         >
-          <Text style={[
-            styles.optionTitle,
-            selectedUserType === 'organization' && styles.selectedText
-          ]}>
+          <Text
+            style={[
+              styles.optionTitle,
+              selectedUserType === "organization" && styles.selectedText,
+            ]}
+          >
             Student Organization
           </Text>
           <Text style={styles.optionSubtitle}>
@@ -61,17 +69,16 @@ const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
       </View>
 
       <TouchableOpacity
-        style={[
-          styles.nextButton,
-          !selectedUserType && styles.disabledButton
-        ]}
+        style={[styles.nextButton, !selectedUserType && styles.disabledButton]}
         onPress={handleNext}
         disabled={!selectedUserType}
       >
-        <Text style={[
-          styles.nextButtonText,
-          !selectedUserType && styles.disabledButtonText
-        ]}>
+        <Text
+          style={[
+            styles.nextButtonText,
+            !selectedUserType && styles.disabledButtonText,
+          ]}
+        >
           Next
         </Text>
       </TouchableOpacity>
@@ -82,33 +89,33 @@ const WelcomeScreen = ({ navigation }: WelcomeScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
     color: COLORS.text,
   },
   subtitle: {
     fontSize: 18,
     color: COLORS.secondaryText,
     marginBottom: 48,
-    textAlign: 'center',
+    textAlign: "center",
   },
   questionText: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginBottom: 24,
-    textAlign: 'center',
+    textAlign: "center",
   },
   optionsContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 48,
   },
   optionCard: {
@@ -117,15 +124,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   selectedCard: {
     borderColor: COLORS.primary,
-    backgroundColor: '#f0f8ff',
+    backgroundColor: "#f0f8ff",
   },
   optionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
     marginBottom: 4,
   },
@@ -147,10 +154,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   nextButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   disabledButtonText: {
     color: COLORS.secondaryText,

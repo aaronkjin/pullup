@@ -8,6 +8,7 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -42,10 +43,15 @@ const MyEventsScreen = () => {
       const data =
         userType === "student"
           ? await EventApi.getUserEvents()
-          : await EventApi.getOrganizationEvents();
+          : await EventApi.getOrganizationEvents(userInfo);
       setEvents(data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
+      Alert.alert(
+        "Error",
+        "Failed to load events. Please check your connection and try again.",
+        [{ text: "OK" }]
+      );
     } finally {
       setLoading(false);
     }
@@ -67,6 +73,11 @@ const MyEventsScreen = () => {
       );
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
+      Alert.alert(
+        "Error",
+        "Failed to update pull up status. Please try again.",
+        [{ text: "OK" }]
+      );
     }
   };
 

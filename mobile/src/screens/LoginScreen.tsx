@@ -1,24 +1,25 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  Image, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  TextInput,
+  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
 } from "react-native";
-import { COLORS } from '../utils/theme';
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "../utils/theme";
 
 interface UserInfo {
   firstName?: string;
   lastName?: string;
   organizationName?: string;
   email?: string;
-  userType?: 'student' | 'organization';
+  userType?: "student" | "organization";
 }
 
 interface LoginScreenProps {
@@ -28,47 +29,97 @@ interface LoginScreenProps {
   route: any;
 }
 
-const LoginScreen = ({ setIsAuthenticated, setUserInfo, navigation, route }: LoginScreenProps) => {
+const LoginScreen = ({
+  setIsAuthenticated,
+  setUserInfo,
+  navigation,
+  route,
+}: LoginScreenProps) => {
   const { userType } = route.params;
   const [isSignUp, setIsSignUp] = useState(true);
-  
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [organizationName, setOrganizationName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [organizationName, setOrganizationName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  // Password requirements state
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    minLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecialChar: false,
+  });
+
+  // Check password requirements
+  const checkPasswordRequirements = (password: string) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+    setPasswordRequirements(requirements);
+    return Object.values(requirements).every(Boolean);
+  };
+
+  // Handle password change
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    if (isSignUp) {
+      checkPasswordRequirements(text);
+    }
+  };
 
   const handleAuth = () => {
     if (isSignUp) {
-      if (userType === 'student') {
-        if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
-          Alert.alert('Error', 'Please fill in all fields');
+      if (userType === "student") {
+        if (
+          !firstName.trim() ||
+          !lastName.trim() ||
+          !email.trim() ||
+          !password.trim()
+        ) {
+          Alert.alert("Error", "Please fill in all fields");
           return;
         }
       } else {
         if (!organizationName.trim() || !email.trim() || !password.trim()) {
-          Alert.alert('Error', 'Please fill in all fields');
+          Alert.alert("Error", "Please fill in all fields");
           return;
         }
       }
+
+      if (!checkPasswordRequirements(password)) {
+        Alert.alert(
+          "Error",
+          "Please make sure your password meets all requirements"
+        );
+        return;
+      }
     } else {
       if (!email.trim() || !password.trim()) {
-        Alert.alert('Error', 'Please enter your email and password');
+        Alert.alert("Error", "Please enter your email and password");
         return;
       }
     }
 
-    if (!email.includes('@stanford.edu')) {
-      Alert.alert('Error', 'Please use a valid Stanford email address');
+    if (!email.includes("@stanford.edu")) {
+      Alert.alert("Error", "Please use a valid Stanford email address");
       return;
     }
 
     const userInfo: UserInfo = {
-      firstName: userType === 'student' ? firstName : undefined,
-      lastName: userType === 'student' ? lastName : undefined,
-      organizationName: userType === 'organization' ? organizationName : undefined,
+      firstName: userType === "student" ? firstName : undefined,
+      lastName: userType === "student" ? lastName : undefined,
+      organizationName:
+        userType === "organization" ? organizationName : undefined,
       email,
-      userType: userType
+      userType: userType,
     };
 
     setUserInfo(userInfo);
@@ -76,9 +127,9 @@ const LoginScreen = ({ setIsAuthenticated, setUserInfo, navigation, route }: Log
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Image
@@ -86,41 +137,43 @@ const LoginScreen = ({ setIsAuthenticated, setUserInfo, navigation, route }: Log
           style={styles.stanfordLogo}
           resizeMode="contain"
         />
-        
+
         <Text style={styles.title}>
-          {isSignUp ? 'Create Account' : 'Sign In'}
+          {isSignUp ? "Create Account" : "Sign In"}
         </Text>
         <Text style={styles.subtitle}>
-          {userType === 'student' ? 'Stanford Student' : 'Stanford Organization'}
+          {isSignUp ? "You're almost there! 🎉" : "Welcome back! 🕺"}
         </Text>
 
         <View style={styles.formContainer}>
           {isSignUp && (
             <>
-              {userType === 'student' ? (
+              {userType === "student" ? (
                 <>
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>First Name</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Jane"
-                      placeholderTextColor="#999"
-                      value={firstName}
-                      onChangeText={setFirstName}
-                      autoCapitalize="words"
-                    />
-                  </View>
-                  
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Last Name</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Doe"
-                      placeholderTextColor="#999"
-                      value={lastName}
-                      onChangeText={setLastName}
-                      autoCapitalize="words"
-                    />
+                  <View style={styles.nameRowContainer}>
+                    <View style={styles.nameInputContainer}>
+                      <Text style={styles.inputLabel}>First Name</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Michael"
+                        placeholderTextColor="#999"
+                        value={firstName}
+                        onChangeText={setFirstName}
+                        autoCapitalize="words"
+                      />
+                    </View>
+
+                    <View style={styles.nameInputContainer}>
+                      <Text style={styles.inputLabel}>Last Name</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Bernstein"
+                        placeholderTextColor="#999"
+                        value={lastName}
+                        onChangeText={setLastName}
+                        autoCapitalize="words"
+                      />
+                    </View>
                   </View>
                 </>
               ) : (
@@ -138,12 +191,16 @@ const LoginScreen = ({ setIsAuthenticated, setUserInfo, navigation, route }: Log
               )}
             </>
           )}
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Stanford Email</Text>
             <TextInput
               style={styles.input}
-              placeholder={userType === 'student' ? "janedoe@stanford.edu" : "treeplanting@stanford.edu"}
+              placeholder={
+                userType === "student"
+                  ? "michaelbernstein@stanford.edu"
+                  : "treeplanting@stanford.edu"
+              }
               placeholderTextColor="#999"
               value={email}
               onChangeText={setEmail}
@@ -151,34 +208,176 @@ const LoginScreen = ({ setIsAuthenticated, setUserInfo, navigation, route }: Log
               autoCapitalize="none"
             />
           </View>
-          
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Choose a strong password"
-              placeholderTextColor="#999"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.passwordInputContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Choose a strong password"
+                placeholderTextColor="#999"
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry={!isPasswordVisible}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              >
+                <Ionicons
+                  name={isPasswordVisible ? "eye-off" : "eye"}
+                  size={20}
+                  color={COLORS.secondaryText}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Password Requirements (only show during sign up) */}
+            {isSignUp && (
+              <View style={styles.passwordRequirementsContainer}>
+                <Text style={styles.requirementsTitle}>
+                  Password must contain:
+                </Text>
+                <View style={styles.requirementsList}>
+                  <View style={styles.requirementItem}>
+                    <Ionicons
+                      name={
+                        passwordRequirements.minLength
+                          ? "checkmark-circle"
+                          : "ellipse-outline"
+                      }
+                      size={16}
+                      color={
+                        passwordRequirements.minLength
+                          ? COLORS.primary
+                          : COLORS.secondaryText
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.requirementText,
+                        passwordRequirements.minLength &&
+                          styles.requirementTextMet,
+                      ]}
+                    >
+                      At least 8 characters
+                    </Text>
+                  </View>
+                  <View style={styles.requirementItem}>
+                    <Ionicons
+                      name={
+                        passwordRequirements.hasUppercase
+                          ? "checkmark-circle"
+                          : "ellipse-outline"
+                      }
+                      size={16}
+                      color={
+                        passwordRequirements.hasUppercase
+                          ? COLORS.primary
+                          : COLORS.secondaryText
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.requirementText,
+                        passwordRequirements.hasUppercase &&
+                          styles.requirementTextMet,
+                      ]}
+                    >
+                      One uppercase letter
+                    </Text>
+                  </View>
+                  <View style={styles.requirementItem}>
+                    <Ionicons
+                      name={
+                        passwordRequirements.hasLowercase
+                          ? "checkmark-circle"
+                          : "ellipse-outline"
+                      }
+                      size={16}
+                      color={
+                        passwordRequirements.hasLowercase
+                          ? COLORS.primary
+                          : COLORS.secondaryText
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.requirementText,
+                        passwordRequirements.hasLowercase &&
+                          styles.requirementTextMet,
+                      ]}
+                    >
+                      One lowercase letter
+                    </Text>
+                  </View>
+                  <View style={styles.requirementItem}>
+                    <Ionicons
+                      name={
+                        passwordRequirements.hasNumber
+                          ? "checkmark-circle"
+                          : "ellipse-outline"
+                      }
+                      size={16}
+                      color={
+                        passwordRequirements.hasNumber
+                          ? COLORS.primary
+                          : COLORS.secondaryText
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.requirementText,
+                        passwordRequirements.hasNumber &&
+                          styles.requirementTextMet,
+                      ]}
+                    >
+                      One number
+                    </Text>
+                  </View>
+                  <View style={styles.requirementItem}>
+                    <Ionicons
+                      name={
+                        passwordRequirements.hasSpecialChar
+                          ? "checkmark-circle"
+                          : "ellipse-outline"
+                      }
+                      size={16}
+                      color={
+                        passwordRequirements.hasSpecialChar
+                          ? COLORS.primary
+                          : COLORS.secondaryText
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.requirementText,
+                        passwordRequirements.hasSpecialChar &&
+                          styles.requirementTextMet,
+                      ]}
+                    >
+                      One special character
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
 
           <TouchableOpacity style={styles.authButton} onPress={handleAuth}>
             <Text style={styles.authButtonText}>
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {isSignUp ? "Create Account" : "Sign In"}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.switchButton}
             onPress={() => setIsSignUp(!isSignUp)}
           >
             <Text style={styles.switchButtonText}>
-              {isSignUp 
-                ? 'Already have an account? Sign In' 
-                : "Don't have an account? Sign Up"
-              }
+              {isSignUp
+                ? "Already have an account? Sign In"
+                : "Don't have an account? Sign Up"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +416,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   formContainer: {
-    width: '100%',
+    width: "100%",
     gap: 16,
   },
   inputContainer: {
@@ -225,7 +424,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     color: COLORS.text,
     marginLeft: 4,
   },
@@ -236,27 +435,81 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: "#f9f9f9",
   },
   authButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 8,
   },
   authButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   switchButton: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
   },
   switchButtonText: {
     color: COLORS.primary,
     fontSize: 14,
+  },
+  passwordInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#f9f9f9",
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  eyeButton: {
+    padding: 4,
+  },
+  passwordRequirementsContainer: {
+    marginTop: 8,
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
+  },
+  requirementsTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  requirementsList: {
+    gap: 4,
+  },
+  requirementItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  requirementText: {
+    fontSize: 12,
+    color: COLORS.secondaryText,
+  },
+  requirementTextMet: {
+    color: COLORS.text,
+    fontWeight: "500",
+  },
+  nameRowContainer: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  nameInputContainer: {
+    flex: 1,
+    gap: 8,
   },
 });
 
