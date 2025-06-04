@@ -64,6 +64,12 @@ def lambda_handler(event, context):
     elif path == '/students/login':
         if http_method == 'POST':
             return check_student_password(body)
+    elif path == '/orgs/create':
+        if http_method == 'POST':
+            return create_org(body)
+    elif path == '/orgs/login':
+        if http_method == 'POST':
+            return check_org_password(body)
     elif path == '/students-events/pu':
         if http_method == 'POST':
             return pu_student_for_event(body)
@@ -144,8 +150,7 @@ def get_all_events():
         conn.close()
         
         return build_response(200, {
-            'events': event_list,
-            'count': len(event_list)
+            'events': event_list
         })
     except Exception as e:
         print(f"Error fetching events: {str(e)}")
@@ -262,6 +267,75 @@ def check_student_password(body):
     except Exception as e:
         print(f"Error checking password: {str(e)}")
         return build_response(500, {'error': 'Failed to check password'})
+
+def create_org(body):
+    try:
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            INSERT INTO Orgs (name, email, password)
+            VALUES (%s, %s, %s)
+            RETURNING org_id
+        """
+        
+        cursor.execute(query, (
+            body['name'],
+            body['email'],
+            body['password']
+        ))
+        
+        org_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return build_response(201, {
+            'message': 'Org created successfully',
+            'org_id': org_id
+        })
+        
+    except psycopg2.IntegrityError:
+        return build_response(409, {'error': 'Email already exists'})
+    except Exception as e:
+        print(f"Error creating org: {str(e)}")
+        return build_response(500, {'error': 'Failed to create Org'})
+
+def check_org_password(body):
+    try:
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT org_id, name, password FROM Orgs 
+            WHERE email = %s
+        """
+        
+        cursor.execute(query, (body['email'],))
+        org = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if not org:
+            return build_response(404, {'error': 'Org not found'})
+
+        if org[2] == body['password']:
+            return build_response(200, {
+                'message': 'Password correct',
+                'org_id': org[0],
+                'name': org[1],
+                'email': body['email']
+            })
+        else:
+            return build_response(401, {'error': 'Invalid password'})
+        
+    except Exception as e:
+        print(f"Error checking password: {str(e)}")
+        return build_response(500, {'error': 'Failed to check password'})
+
 
 
 def pu_student_for_event(body):

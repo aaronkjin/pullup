@@ -21,3 +21,10 @@ POST /students/create - Create a new student
     -name,email,password
 POST /students/login - check email password
     -email,password
+
+Org Endpoints 
+
+POST /orgs/create - Create a new orgs
+    -name,email,password
+POST /orgs/login - check email password
+    -email,password
