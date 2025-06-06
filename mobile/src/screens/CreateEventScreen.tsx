@@ -277,11 +277,11 @@ const CreateEventScreen = () => {
       setIsPrivate(false);
       setEventPassword("");
 
-      Alert.alert(
+      console.log(
         "Success",
-        `Event created successfully! Event ID: ${createdEvent.id}`,
-        [{ text: "OK", onPress: () => navigation.goBack() }]
+        `Event created successfully! Event ID: ${createdEvent.id}`
       );
+      navigation.goBack();
     } catch (error: any) {
       console.error("Failed to create event:", error);
       let errorMessage = "Failed to create event. Please try again.";
