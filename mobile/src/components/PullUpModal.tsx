@@ -155,24 +155,26 @@ const PullUpModal: React.FC<PullUpModalProps> = ({
               {event.isPrivate && !event.userPulledUp && (
                 <View style={styles.passwordContainer}>
                   <Text style={styles.passwordLabel}>Event Password</Text>
-                  <TextInput
-                    style={styles.passwordInput}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="Enter password"
-                    secureTextEntry={!isPasswordVisible}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeIcon}
-                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  >
-                    <Ionicons
-                      name={isPasswordVisible ? "eye" : "eye-off"}
-                      size={20}
-                      color={COLORS.secondaryText}
+                  <View style={styles.passwordInputWrapper}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter password"
+                      secureTextEntry={!isPasswordVisible}
+                      autoCapitalize="none"
                     />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.eyeIcon}
+                      onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                    >
+                      <Ionicons
+                        name={isPasswordVisible ? "eye" : "eye-off"}
+                        size={20}
+                        color={COLORS.secondaryText}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
 
@@ -313,7 +315,10 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     marginBottom: SPACING.m,
+  },
+  passwordInputWrapper: {
     position: "relative",
+    justifyContent: "center",
   },
   passwordLabel: {
     fontSize: FONT.sizes.s,
@@ -334,12 +339,11 @@ const styles = StyleSheet.create({
   },
   eyeIcon: {
     position: "absolute",
-    right: SPACING.m,
-    top: 35,
-    padding: 2,
+    right: 0,
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    height: 24,
+    paddingHorizontal: SPACING.m,
   },
   attendeesHeader: {
     flexDirection: "row",

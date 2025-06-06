@@ -52,15 +52,15 @@ const EventDetailsScreen = () => {
     const fetchAttendees = async () => {
       try {
         setIsLoadingAttendees(true);
-        console.log('Fetching attendees for event:', event.id);
-        
+        console.log("Fetching attendees for event:", event.id);
+
         const eventAttendees = await EventApi.getEventAttendees(event.id);
-        console.log('Fetched attendees:', eventAttendees);
-        
+        console.log("Fetched attendees:", eventAttendees);
+
         setAttendees(eventAttendees);
       } catch (error) {
-        console.error('Error fetching attendees:', error);
-        Alert.alert('Error', 'Failed to load attendees');
+        console.error("Error fetching attendees:", error);
+        Alert.alert("Error", "Failed to load attendees");
       } finally {
         setIsLoadingAttendees(false);
       }
@@ -86,7 +86,7 @@ const EventDetailsScreen = () => {
 
   const handleCheckIn = async (attendeeId: string) => {
     // Find the attendee to get their current status
-    const attendee = attendees.find(a => a.id === attendeeId);
+    const attendee = attendees.find((a) => a.id === attendeeId);
     if (!attendee) return;
 
     const newCheckedInStatus = !attendee.checkedIn;
@@ -94,19 +94,23 @@ const EventDetailsScreen = () => {
     // Optimistic UI update
     setAttendees((prevAttendees) =>
       prevAttendees.map((a) =>
-        a.id === attendeeId
-          ? { ...a, checkedIn: newCheckedInStatus }
-          : a
+        a.id === attendeeId ? { ...a, checkedIn: newCheckedInStatus } : a
       )
     );
 
     try {
       // Make API call to update registration status
-      await EventApi.updateAttendeeRegistration(attendeeId, event.id, newCheckedInStatus);
-      console.log(`Successfully updated registration status for attendee ${attendeeId} to ${newCheckedInStatus}`);
+      await EventApi.updateAttendeeRegistration(
+        attendeeId,
+        event.id,
+        newCheckedInStatus
+      );
+      console.log(
+        `Successfully updated registration status for attendee ${attendeeId} to ${newCheckedInStatus}`
+      );
     } catch (error) {
-      console.error('Error updating attendee registration:', error);
-      
+      console.error("Error updating attendee registration:", error);
+
       // Revert optimistic update on error
       setAttendees((prevAttendees) =>
         prevAttendees.map((a) =>
@@ -116,7 +120,10 @@ const EventDetailsScreen = () => {
         )
       );
 
-      const errorMessage = error instanceof Error ? error.message : "Failed to update registration status";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to update registration status";
       Alert.alert("Error", errorMessage);
     }
   };
@@ -130,32 +137,39 @@ const EventDetailsScreen = () => {
   };
 
   const handleDeleteEvent = () => {
-    Alert.alert("Delete Event", "Are you sure you want to delete this event? This action cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            // Make API call to delete event from server
-            await EventApi.deleteEvent(event.id);
-            
-            Alert.alert("Success", "Event deleted successfully", [
-              {
-                text: "OK",
-                onPress: () => navigation.goBack(),
-              }
-            ]);
-            console.log("Event deleted successfully:", event.id);
-          } catch (error) {
-            console.error("Error deleting event:", error);
-            
-            const errorMessage = error instanceof Error ? error.message : "Failed to delete event";
-            Alert.alert("Error", errorMessage);
-          }
+    Alert.alert(
+      "Delete Event",
+      "Are you sure you want to delete this event? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Make API call to delete event from server
+              await EventApi.deleteEvent(event.id);
+
+              Alert.alert("Success", "Event deleted successfully", [
+                {
+                  text: "OK",
+                  onPress: () => navigation.goBack(),
+                },
+              ]);
+              console.log("Event deleted successfully:", event.id);
+            } catch (error) {
+              console.error("Error deleting event:", error);
+
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Failed to delete event";
+              Alert.alert("Error", errorMessage);
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   return (
@@ -280,9 +294,15 @@ const EventDetailsScreen = () => {
               </View>
             ) : attendees.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Ionicons name="people-outline" size={48} color={COLORS.secondaryText} />
+                <Ionicons
+                  name="people-outline"
+                  size={48}
+                  color={COLORS.secondaryText}
+                />
                 <Text style={styles.emptyText}>No attendees yet</Text>
-                <Text style={styles.emptySubtext}>Be the first to pull up to this event!</Text>
+                <Text style={styles.emptySubtext}>
+                  Let's get this party started!
+                </Text>
               </View>
             ) : (
               attendees.map((attendee) => (
