@@ -14,7 +14,7 @@ interface IEventApi {
   getEventById: (id: string) => Promise<Event | null>;
   togglePullUp: (id: string) => Promise<Event>;
   getUserEvents: (studentId: number) => Promise<Event[]>;
-  getOrganizationEvents: (userInfo?: any) => Promise<Event[]>;
+  getOrganizationEvents: (orgId: number) => Promise<Event[]>;
   createEvent: (eventData: any) => Promise<Event>;
   // Legacy methods
   toggleLike: (id: string) => Promise<Event>;
@@ -85,13 +85,12 @@ class EventApiProvider implements IEventApi {
     return RealEventApi.getUserEvents(studentId);
   }
 
-  async getOrganizationEvents(userInfo?: any): Promise<Event[]> {
-    this.syncMockUser(userInfo);
+  async getOrganizationEvents(orgId: number): Promise<Event[]> {
     if (USE_MOCK_API) {
       return MockEventApi.getOrganizationEvents();
     }
     // Use real API implementation
-    return RealEventApi.getOrganizationEvents();
+    return RealEventApi.getOrganizationEvents(orgId);
   }
 
   async createEvent(eventData: any): Promise<Event> {

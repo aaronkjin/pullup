@@ -13,10 +13,11 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import Icon from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { EventApi } from "../services/apiProvider";
+import { AuthTokenManager } from "../config/api";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
 const CreateEventScreen = () => {
@@ -55,19 +56,18 @@ const CreateEventScreen = () => {
     });
   };
 
-  // Format date/time for backend
-  const formatDateTimeForBackend = (date: Date, allDay: boolean) => {
-    if (allDay) {
-      return date.toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "numeric",
-      });
-    }
-    return date.toLocaleString("en-US", {
+  // Format date for backend (MM/DD/YYYY)
+  const formatDateForBackend = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
       month: "2-digit",
       day: "2-digit",
       year: "numeric",
+    });
+  };
+
+  // Format time for backend (HH:MM AM/PM)
+  const formatTimeForBackend = (date: Date) => {
+    return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
@@ -198,35 +198,74 @@ const CreateEventScreen = () => {
     try {
       setLoading(true);
 
-      // TODO: Need to upload image and get the URL here
-      const imageUrl =
+      // Extract org_id from auth token
+      const token = await AuthTokenManager.getToken();
+      console.log("Current auth token for event creation:", token);
+
+      if (!token || !token.startsWith("org_")) {
+        Alert.alert(
+          "Error",
+          "You must be logged in as an organization to create events."
+        );
+        return;
+      }
+
+      // Parse token format: org_${org_id}_${timestamp}
+      const parts = token.split("_");
+      if (parts.length < 2) {
+        Alert.alert(
+          "Error",
+          "Invalid authentication token. Please log in again."
+        );
+        return;
+      }
+
+      const orgId = parseInt(parts[1]);
+      if (isNaN(orgId)) {
+        Alert.alert("Error", "Invalid organization ID. Please log in again.");
+        return;
+      }
+
+      console.log("Extracted org_id for event creation:", orgId);
+
+      // Use dummy image URL for now
+      const dummyImageUrl =
         "https://images.unsplash.com/photo-1619139079319-ba9ff149a8c2?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-      // Format date/time for backend
-      const formattedStartDateTime = formatDateTimeForBackend(
-        startDate,
-        isAllDay
-      );
-      const formattedEndDateTime = formatDateTimeForBackend(endDate, isAllDay);
+      // Format date and time for backend
+      const eventDate = formatDateForBackend(startDate);
+      const eventTime = isAllDay ? "All Day" : formatTimeForBackend(startDate);
 
-      // TODO: Need to get org ID and org name from user profile
+      // Prepare event data
       const eventData = {
-        title,
-        description,
-        organizerId: "org1",
-        organizerName: "Stanford Eats",
-        organizerImageUrl: "https://logo.clearbit.com/stanford.edu",
+        org_id: orgId,
+        name: title,
+        event_date: eventDate,
+        event_time: eventTime,
         location,
-        dateTime: `${formattedStartDateTime} - ${formattedEndDateTime}`,
-        startDateTime: formattedStartDateTime,
-        endDateTime: formattedEndDateTime,
-        isAllDay,
-        imageUrl,
-        isPrivate,
-        eventPassword: isPrivate ? eventPassword : undefined,
+        description,
+        image_url: dummyImageUrl,
+        is_public: !isPrivate,
+        passcode: isPrivate ? eventPassword : undefined,
       };
 
-      await EventApi.createEvent(eventData);
+      console.log("Creating event with data:", eventData);
+      console.log("Data types:", {
+        org_id: typeof eventData.org_id,
+        name: typeof eventData.name,
+        event_date: typeof eventData.event_date,
+        event_time: typeof eventData.event_time,
+        location: typeof eventData.location,
+        description: typeof eventData.description,
+        image_url: typeof eventData.image_url,
+        is_public: typeof eventData.is_public,
+        passcode: typeof eventData.passcode,
+      });
+      console.log("Data values:", eventData);
+
+      const createdEvent = await EventApi.createEvent(eventData);
+
+      console.log("Event creation response:", createdEvent);
 
       // Reset form
       setTitle("");
@@ -238,11 +277,22 @@ const CreateEventScreen = () => {
       setIsPrivate(false);
       setEventPassword("");
 
-      console.log("Success: Event created successfully!");
-      navigation.goBack();
-    } catch (error) {
+      Alert.alert(
+        "Success",
+        `Event created successfully! Event ID: ${createdEvent.id}`,
+        [{ text: "OK", onPress: () => navigation.goBack() }]
+      );
+    } catch (error: any) {
       console.error("Failed to create event:", error);
-      Alert.alert("Error", "Failed to create event. Please try again.");
+      let errorMessage = "Failed to create event. Please try again.";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -261,7 +311,11 @@ const CreateEventScreen = () => {
 
         {/* Image upload placeholder */}
         <TouchableOpacity style={styles.imageUpload}>
-          <Icon name="image-outline" size={48} color={COLORS.secondaryText} />
+          <Ionicons
+            name="image-outline"
+            size={48}
+            color={COLORS.secondaryText}
+          />
           <Text style={styles.imageUploadText}>Upload Event Image</Text>
         </TouchableOpacity>
 
@@ -497,7 +551,7 @@ const CreateEventScreen = () => {
                   style={styles.generateButton}
                   onPress={generatePassword}
                 >
-                  <Icon name="refresh" size={20} color={COLORS.primary} />
+                  <Ionicons name="refresh" size={20} color={COLORS.primary} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.passwordNote}>

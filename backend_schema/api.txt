@@ -28,3 +28,5 @@ POST /orgs/create - Create a new orgs
     -name,email,password
 POST /orgs/login - check email password
     -email,password
+POST /orgs/org - get all events for org
+    -org_id
