@@ -108,6 +108,39 @@ export const EventApi = {
     return newEvent;
   },
 
+  // Get attendees for a specific event (mock implementation)
+  getEventAttendees: async (eventId: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    checkedIn: boolean;
+  }[]> => {
+    await delay(500);
+    const event = mockEvents.find(e => e.id === eventId);
+    if (!event) return [];
+    
+    // Generate mock attendees based on pullUpCount
+    const mockAttendees = [];
+    for (let i = 1; i <= event.pullUpCount; i++) {
+      mockAttendees.push({
+        id: `attendee_${eventId}_${i}`,
+        name: `Student ${i}`,
+        email: `student${i}@stanford.edu`,
+        checkedIn: Math.random() > 0.7, // 30% chance of being checked in
+      });
+    }
+    
+    return mockAttendees;
+  },
+
+  // Update attendee registration status (mock implementation)
+  updateAttendeeRegistration: async (studentId: string, eventId: string, registered: boolean): Promise<void> => {
+    await delay(300);
+    console.log(`Mock: Updated student ${studentId} registration for event ${eventId} to ${registered}`);
+    // In a real mock implementation, we could store this state and reflect it in getEventAttendees
+    return;
+  },
+
   // Legacy methods (keeping for backward compatibility during transition)
   toggleLike: async (id: string, password?: string): Promise<Event> => {
     // Redirect to togglePullUp for backward compatibility

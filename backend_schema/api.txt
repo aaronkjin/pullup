@@ -3,18 +3,19 @@ Event Endpoints
 GET /events - Get all events (sorted by feed algo)
 POST /events - Create a new event
     -org_id,name,event_date,event_time,location,description,participant_count,image_url,is_public,passcode
-
+DELETE /events - delete an event
+    -event_id
 Student-Event Relationship Endpoints
 
-POST /students-events/pu - Register a student for an event
+POST /students-events/pu - pu a student for an event
     -student_id,event_id,reg_code
-DELETE /students-events/pu - unregister
+DELETE /students-events/pu - unpu
     -student_id,event_id
 POST /students-events/student - Get all events for a specific student
     -student_id
 POST /students-events/event - Get all students registered for a specific event
     -event_id
-PUT /student-events/update - update row
+PUT /students-events/update - update row
     -student_id,event_id,registered?
 
 Student Endpoints
