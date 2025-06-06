@@ -16,6 +16,14 @@ interface IEventApi {
   getUserEvents: (studentId: number) => Promise<Event[]>;
   getOrganizationEvents: (orgId: number) => Promise<Event[]>;
   createEvent: (eventData: any) => Promise<Event>;
+  deleteEvent: (id: string) => Promise<void>;
+  getEventAttendees: (eventId: string) => Promise<{
+    id: string;
+    name: string;
+    email: string;
+    checkedIn: boolean;
+  }[]>;
+  updateAttendeeRegistration: (studentId: string, eventId: string, registered: boolean) => Promise<void>;
   // Legacy methods
   toggleLike: (id: string) => Promise<Event>;
   toggleSaved: (id: string) => Promise<Event>;
@@ -100,6 +108,15 @@ class EventApiProvider implements IEventApi {
     return RealEventApi.createEvent(eventData);
   }
 
+  async deleteEvent(id: string): Promise<void> {
+    if (USE_MOCK_API) {
+      // Mock implementation
+      console.log(`Mock deleteEvent called for id: ${id}`);
+      return;
+    }
+    return RealEventApi.deleteEvent(id);
+  }
+
   // Legacy methods for backward compatibility
   async toggleLike(id: string): Promise<Event> {
     return this.togglePullUp(id, false);
@@ -110,6 +127,27 @@ class EventApiProvider implements IEventApi {
       return MockEventApi.toggleSaved(id);
     }
     return RealEventApi.toggleSaved(id);
+  }
+
+  async getEventAttendees(eventId: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    checkedIn: boolean;
+  }[]> {
+    if (USE_MOCK_API) {
+      return MockEventApi.getEventAttendees(eventId);
+    }
+    return RealEventApi.getEventAttendees(eventId);
+  }
+
+  async updateAttendeeRegistration(studentId: string, eventId: string, registered: boolean): Promise<void> {
+    if (USE_MOCK_API) {
+      // Mock implementation
+      console.log(`Mock updateAttendeeRegistration called for studentId: ${studentId}, eventId: ${eventId}, registered: ${registered}`);
+      return;
+    }
+    return RealEventApi.updateAttendeeRegistration(studentId, eventId, registered);
   }
 }
 

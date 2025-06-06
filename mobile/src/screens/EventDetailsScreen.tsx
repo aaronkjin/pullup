@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import * as Clipboard from "expo-clipboard";
 
 import { RootStackParamList, Event } from "../types";
 import { COLORS, SPACING, FONT } from "../utils/theme";
+import { EventApi } from "../services/apiProvider";
 
 type EventDetailsRouteProp = RouteProp<RootStackParamList, "EventDetails">;
 type EventDetailsNavigationProp = NativeStackNavigationProp<
@@ -26,23 +27,17 @@ type EventDetailsNavigationProp = NativeStackNavigationProp<
 interface Attendee {
   id: string;
   name: string;
+  email: string;
   checkedIn: boolean;
 }
-
-const mockAttendees: Attendee[] = [
-  { id: "1", name: "John Doe", checkedIn: false },
-  { id: "2", name: "Jane Smith", checkedIn: false },
-  { id: "3", name: "Sam Wilson", checkedIn: false },
-  { id: "4", name: "Michael Brown", checkedIn: true },
-  { id: "5", name: "Emily Davis", checkedIn: false },
-];
 
 const EventDetailsScreen = () => {
   const route = useRoute<EventDetailsRouteProp>();
   const navigation = useNavigation<EventDetailsNavigationProp>();
   const { event } = route.params;
 
-  const [attendees, setAttendees] = useState<Attendee[]>(mockAttendees);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [isLoadingAttendees, setIsLoadingAttendees] = useState(true);
   const [isPasswordCopied, setIsPasswordCopied] = useState(false);
 
   // Set header title
@@ -51,6 +46,28 @@ const EventDetailsScreen = () => {
       title: event.title,
     });
   }, [navigation, event.title]);
+
+  // Fetch attendees when component mounts
+  React.useEffect(() => {
+    const fetchAttendees = async () => {
+      try {
+        setIsLoadingAttendees(true);
+        console.log('Fetching attendees for event:', event.id);
+        
+        const eventAttendees = await EventApi.getEventAttendees(event.id);
+        console.log('Fetched attendees:', eventAttendees);
+        
+        setAttendees(eventAttendees);
+      } catch (error) {
+        console.error('Error fetching attendees:', error);
+        Alert.alert('Error', 'Failed to load attendees');
+      } finally {
+        setIsLoadingAttendees(false);
+      }
+    };
+
+    fetchAttendees();
+  }, [event.id]);
 
   // Format date
   const formatDate = (dateString: string) => {
@@ -63,14 +80,41 @@ const EventDetailsScreen = () => {
     });
   };
 
-  const handleCheckIn = (attendeeId: string) => {
+  const handleCheckIn = async (attendeeId: string) => {
+    // Find the attendee to get their current status
+    const attendee = attendees.find(a => a.id === attendeeId);
+    if (!attendee) return;
+
+    const newCheckedInStatus = !attendee.checkedIn;
+
+    // Optimistic UI update
     setAttendees((prevAttendees) =>
-      prevAttendees.map((attendee) =>
-        attendee.id === attendeeId
-          ? { ...attendee, checkedIn: !attendee.checkedIn }
-          : attendee
+      prevAttendees.map((a) =>
+        a.id === attendeeId
+          ? { ...a, checkedIn: newCheckedInStatus }
+          : a
       )
     );
+
+    try {
+      // Make API call to update registration status
+      await EventApi.updateAttendeeRegistration(attendeeId, event.id, newCheckedInStatus);
+      console.log(`Successfully updated registration status for attendee ${attendeeId} to ${newCheckedInStatus}`);
+    } catch (error) {
+      console.error('Error updating attendee registration:', error);
+      
+      // Revert optimistic update on error
+      setAttendees((prevAttendees) =>
+        prevAttendees.map((a) =>
+          a.id === attendeeId
+            ? { ...a, checkedIn: !newCheckedInStatus } // Revert back
+            : a
+        )
+      );
+
+      const errorMessage = error instanceof Error ? error.message : "Failed to update registration status";
+      Alert.alert("Error", errorMessage);
+    }
   };
 
   const handleCopyPassword = async () => {
@@ -82,15 +126,29 @@ const EventDetailsScreen = () => {
   };
 
   const handleDeleteEvent = () => {
-    Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
+    Alert.alert("Delete Event", "Are you sure you want to delete this event? This action cannot be undone.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
-          // TODO: Add API call to delete event from server
-          console.log("Event deleted:", event.id);
-          navigation.goBack();
+        onPress: async () => {
+          try {
+            // Make API call to delete event from server
+            await EventApi.deleteEvent(event.id);
+            
+            Alert.alert("Success", "Event deleted successfully", [
+              {
+                text: "OK",
+                onPress: () => navigation.goBack(),
+              }
+            ]);
+            console.log("Event deleted successfully:", event.id);
+          } catch (error) {
+            console.error("Error deleting event:", error);
+            
+            const errorMessage = error instanceof Error ? error.message : "Failed to delete event";
+            Alert.alert("Error", errorMessage);
+          }
         },
       },
     ]);
@@ -207,38 +265,55 @@ const EventDetailsScreen = () => {
               <Text style={styles.sectionTitle}>Attendees</Text>
               <View style={styles.pullUpIndicator}>
                 <Ionicons name="people" size={18} color={COLORS.primary} />
-                <Text style={styles.pullUpCount}>{event.pullUpCount}</Text>
+                <Text style={styles.pullUpCount}>{attendees.length}</Text>
                 <Text style={styles.pullUpText}>pulling up</Text>
               </View>
             </View>
 
-            {attendees.map((attendee) => (
-              <TouchableOpacity
-                key={attendee.id}
-                style={styles.attendeeRow}
-                onPress={() => handleCheckIn(attendee.id)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.attendeeName,
-                    attendee.checkedIn && styles.attendeeNameCheckedIn,
-                  ]}
+            {isLoadingAttendees ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>Loading attendees...</Text>
+              </View>
+            ) : attendees.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="people-outline" size={48} color={COLORS.secondaryText} />
+                <Text style={styles.emptyText}>No attendees yet</Text>
+                <Text style={styles.emptySubtext}>Be the first to pull up to this event!</Text>
+              </View>
+            ) : (
+              attendees.map((attendee) => (
+                <TouchableOpacity
+                  key={attendee.id}
+                  style={styles.attendeeRow}
+                  onPress={() => handleCheckIn(attendee.id)}
+                  activeOpacity={0.7}
                 >
-                  {attendee.name}
-                </Text>
-                <View
-                  style={[
-                    styles.checkInCircle,
-                    attendee.checkedIn && styles.checkInCircleChecked,
-                  ]}
-                >
-                  {attendee.checkedIn && (
-                    <Ionicons name="checkmark" size={16} color="#FFF" />
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.attendeeInfo}>
+                    <Text
+                      style={[
+                        styles.attendeeName,
+                        attendee.checkedIn && styles.attendeeNameCheckedIn,
+                      ]}
+                    >
+                      {attendee.name}
+                    </Text>
+                    {attendee.email && (
+                      <Text style={styles.attendeeEmail}>{attendee.email}</Text>
+                    )}
+                  </View>
+                  <View
+                    style={[
+                      styles.checkInCircle,
+                      attendee.checkedIn && styles.checkInCircleChecked,
+                    ]}
+                  >
+                    {attendee.checkedIn && (
+                      <Ionicons name="checkmark" size={16} color="#FFF" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
           </View>
 
           {/* Delete Button */}
@@ -425,13 +500,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  attendeeName: {
+  attendeeInfo: {
     flex: 1,
+  },
+  attendeeName: {
     fontSize: FONT.sizes.m,
     color: COLORS.text,
   },
   attendeeNameCheckedIn: {
     textDecorationLine: "line-through",
+    color: COLORS.secondaryText,
+  },
+  attendeeEmail: {
+    fontSize: FONT.sizes.s,
     color: COLORS.secondaryText,
   },
   checkInCircle: {
@@ -446,6 +527,30 @@ const styles = StyleSheet.create({
   checkInCircleChecked: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
+  },
+  loadingContainer: {
+    paddingVertical: SPACING.xl,
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: FONT.sizes.m,
+    color: COLORS.secondaryText,
+  },
+  emptyContainer: {
+    paddingVertical: SPACING.xl,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: FONT.sizes.l,
+    fontWeight: "600",
+    color: COLORS.secondaryText,
+    marginTop: SPACING.m,
+    marginBottom: SPACING.s,
+  },
+  emptySubtext: {
+    fontSize: FONT.sizes.m,
+    color: COLORS.secondaryText,
+    textAlign: "center",
   },
   deleteButton: {
     flexDirection: "row",

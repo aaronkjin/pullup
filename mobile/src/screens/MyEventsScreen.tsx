@@ -172,15 +172,45 @@ const MyEventsScreen = () => {
   };
 
   // Handle delete event (for organizations)
-  const handleDeleteEvent = (eventId: string) => {
-    // Remove the event from the local state to clear it from screen
-    setEvents((prevEvents) =>
-      prevEvents.filter((event) => event.id !== eventId)
-    );
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      // Show confirmation alert first
+      Alert.alert(
+        "Delete Event", 
+        "Are you sure you want to delete this event? This action cannot be undone.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                // Remove the event from the local state immediately for better UX
+                setEvents((prevEvents) =>
+                  prevEvents.filter((event) => event.id !== eventId)
+                );
 
-    // TODO: Add API call to delete event from server
-    // await EventApi.deleteEvent(eventId);
-    console.log("Event deleted:", eventId);
+                // Make API call to delete event from server
+                await EventApi.deleteEvent(eventId);
+                
+                Alert.alert("Success", "Event deleted successfully");
+                console.log("Event deleted successfully:", eventId);
+              } catch (error) {
+                console.error("Error deleting event:", error);
+                
+                // Restore the event in local state if API call failed
+                fetchEvents(); // Refetch to restore state
+                
+                const errorMessage = error instanceof Error ? error.message : "Failed to delete event";
+                Alert.alert("Error", errorMessage);
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error showing delete confirmation:", error);
+    }
   };
 
   // Handle logout

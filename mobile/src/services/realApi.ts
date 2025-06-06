@@ -297,6 +297,92 @@ export const EventApi = {
     }
   },
 
+  // Get attendees for a specific event
+  getEventAttendees: async (eventId: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    checkedIn: boolean;
+  }[]> => {
+    try {
+      console.log('Fetching attendees for event_id:', eventId);
+      
+      const response = await post<any>('/students-events/event', { 
+        event_id: parseInt(eventId) 
+      });
+      
+      console.log('Event attendees API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle the API response structure
+      if (response && typeof response === 'object' && Array.isArray(response.students)) {
+        console.log('Found attendees array with length:', response.students.length);
+        
+        // Transform backend student data to frontend attendee format
+        return response.students.map((student: any) => ({
+          id: String(student.student_id || student.id),
+          name: student.name || 'Unknown Student',
+          email: student.email || '',
+          checkedIn: student.registered === true, // Use registered field to determine check-in status
+        }));
+      }
+      
+      console.log('No students array found in attendees response, returning empty array');
+      return [];
+      
+    } catch (error: any) {
+      console.error('Error fetching event attendees:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return [];
+    }
+  },
+
+  // Update attendee registration status
+  updateAttendeeRegistration: async (studentId: string, eventId: string, registered: boolean): Promise<void> => {
+    try {
+      console.log('Updating attendee registration:', { studentId, eventId, registered });
+      
+      const response = await put<any>('/students-events/update', {
+        student_id: parseInt(studentId),
+        event_id: parseInt(eventId),
+        registered: registered
+      });
+      
+      console.log('Update attendee registration API response:', response);
+      console.log('Registration updated successfully');
+      
+    } catch (error: any) {
+      console.error('Error updating attendee registration:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
+      
+      // Handle specific error responses
+      if (error.response?.status === 404) {
+        throw new Error("Student or event not found");
+      } else if (error.response?.status === 400) {
+        throw new Error("Invalid request data");
+      } else if (error.response?.status === 403) {
+        throw new Error("Permission denied - unable to update registration");
+      }
+      
+      // Extract error message from response if available
+      let errorMessage = "Failed to update registration status";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
+  },
+
   // Get event by ID
   getEventById: async (id: string): Promise<Event> => {
     const backendEvent = await get<BackendEvent>(ENDPOINTS.event(id));
