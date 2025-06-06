@@ -450,7 +450,7 @@ def pu_student_for_event(body):
             body['student_id'],
             body['event_id'],
             body.get('reg_code'),
-            body.get('registered', True)
+            body.get('registered', False)
         ))
         
         # Update participant count
