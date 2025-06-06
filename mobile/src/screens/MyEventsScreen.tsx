@@ -8,7 +8,6 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
-  Alert,
   TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -76,11 +75,6 @@ const MyEventsScreen = () => {
       }
     } catch (error) {
       console.error("Failed to fetch events:", error);
-      Alert.alert(
-        "Error",
-        "Failed to load events. Please check your connection and try again.",
-        [{ text: "OK" }]
-      );
     } finally {
       setLoading(false);
     }
@@ -102,11 +96,6 @@ const MyEventsScreen = () => {
       );
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
-      Alert.alert(
-        "Error",
-        "Failed to update pull up status. Please try again.",
-        [{ text: "OK" }]
-      );
     }
   };
 

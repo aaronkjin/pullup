@@ -122,36 +122,27 @@ const LoginScreen = ({
           email: email,
           password: password,
         });
-        
+
         const tempToken = `student_${response.student_id}_${Date.now()}`;
         await AuthTokenManager.setToken(tempToken);
-        console.log('Stored temporary auth token:', tempToken);
-        
-        Alert.alert(
-          "Success!", 
-          `Student account created successfully!`,
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                const userInfo: UserInfo = {
-                  firstName: firstName,
-                  lastName: lastName,
-                  email,
-                  userType: userType,
-                };
-                setUserInfo(userInfo);
-                setIsAuthenticated(true);
-              }
-            }
-          ]
-        );
+        console.log("Stored temporary auth token:", tempToken);
+        console.log("Success: Student account created successfully!");
+
+        const userInfo: UserInfo = {
+          firstName: firstName,
+          lastName: lastName,
+          email,
+          userType: userType,
+        };
+        setUserInfo(userInfo);
+        setIsAuthenticated(true);
         return;
       } catch (error: any) {
         console.error("Student creation error:", error);
-        
-        let errorMessage = "Failed to create student account. Please try again.";
-        
+
+        let errorMessage =
+          "Failed to create student account. Please try again.";
+
         if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response?.data?.error) {
@@ -159,8 +150,8 @@ const LoginScreen = ({
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
-        Alert.alert("Error", errorMessage);
+
+        console.error("Error:", errorMessage);
         return;
       }
     }
@@ -171,40 +162,32 @@ const LoginScreen = ({
           email: email,
           password: password,
         });
-        
+
         const tempToken = `student_${response.student_id}_${Date.now()}`;
         await AuthTokenManager.setToken(tempToken);
-        console.log('Stored login auth token:', tempToken);
-        
-        const nameParts = response.name.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
-        
-        Alert.alert(
-          "Welcome back!", 
-          `Login successful! Welcome back, ${response.name}`,
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                const userInfo: UserInfo = {
-                  firstName: firstName,
-                  lastName: lastName,
-                  email: response.email,
-                  userType: userType,
-                };
-                setUserInfo(userInfo);
-                setIsAuthenticated(true);
-              }
-            }
-          ]
+        console.log("Stored login auth token:", tempToken);
+        console.log(
+          `Welcome back! Login successful! Welcome back, ${response.name}`
         );
+
+        const nameParts = response.name.split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
+
+        const userInfo: UserInfo = {
+          firstName: firstName,
+          lastName: lastName,
+          email: response.email,
+          userType: userType,
+        };
+        setUserInfo(userInfo);
+        setIsAuthenticated(true);
         return;
       } catch (error: any) {
         console.error("Student login error:", error);
-        
+
         let errorMessage = "Login failed. Please check your credentials.";
-        
+
         if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response?.data?.error) {
@@ -212,7 +195,7 @@ const LoginScreen = ({
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         Alert.alert("Login Error", errorMessage);
         return;
       }
