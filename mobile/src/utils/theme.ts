@@ -1,21 +1,21 @@
 import { DefaultTheme } from 'react-native-paper';
 
 export const COLORS = {
-  primary: '#007AFF', // Main blue
-  secondary: '#5E5CE6', // Secondary purple
-  background: '#F2F2F7', // Light gray bg
-  card: '#FFFFFF', // White card bg
-  text: '#000000', // Black text
-  secondaryText: '#8E8E93', // Gray text
-  border: '#E5E5EA', // Light border
-  notification: '#FF3B30', // Red for notifs
-  success: '#34C759', // Green for success
-  warning: '#FF9500', // Orange for warnings
-  error: '#FF3B30', // Red for errors
-  disabled: '#D1D1D6', // Disabled background
-  disabledText: '#C7C7CC', // Disabled text
-  lightBlue: '#EBF5FF', // A very light blue for backgrounds
-  lightRed: '#FFE4E4', // A very light red for delete actions
+  primary: '#007AFF',
+  secondary: '#5E5CE6', 
+  background: '#F2F2F7', 
+  card: '#FFFFFF', 
+  text: '#000000', 
+  secondaryText: '#8E8E93', 
+  border: '#E5E5EA', 
+  notification: '#FF3B30', 
+  success: '#34C759', 
+  warning: '#FF9500', 
+  error: '#FF3B30', 
+  disabled: '#D1D1D6', 
+  disabledText: '#C7C7CC', 
+  lightBlue: '#EBF5FF', 
+  lightRed: '#FFE4E4', 
 };
 
 export const SPACING = {

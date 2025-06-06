@@ -2,7 +2,7 @@ import { Event, User, QRWristband } from '../types';
 import { get, post, put, del } from './httpClient';
 import { AuthTokenManager } from '../config/api';
 
-// Backend API response types (matching actual API structure)
+// Backend API response types
 interface BackendEvent {
   event_id: number;
   org_id: number;

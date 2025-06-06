@@ -51,7 +51,7 @@ const CreateEventScreen = () => {
   // Date/Time state
   const [isAllDay, setIsAllDay] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date(Date.now() + 60 * 60 * 1000)); // 1 hour later
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 60 * 60 * 1000)); // 1 hr later
   const [activePicker, setActivePicker] = useState<
     "startDate" | "startTime" | "endDate" | "endTime" | null
   >(null);
@@ -101,9 +101,9 @@ const CreateEventScreen = () => {
     pickerType: "startDate" | "startTime" | "endDate" | "endTime"
   ) => {
     if (activePicker === pickerType) {
-      setActivePicker(null); // Close if same picker is tapped
+      setActivePicker(null);
     } else {
-      setActivePicker(pickerType); // Open new picker + close any existing one
+      setActivePicker(pickerType);
     }
   };
 
@@ -166,9 +166,8 @@ const CreateEventScreen = () => {
   // All-day toggle
   const handleAllDayToggle = (value: boolean) => {
     setIsAllDay(value);
-    setActivePicker(null); // Close any open pickers
+    setActivePicker(null);
     if (value) {
-      // Set start to beginning of day, end to end of day
       const newStartDate = new Date(startDate);
       newStartDate.setHours(0, 0, 0, 0);
       setStartDate(newStartDate);
@@ -395,7 +394,7 @@ const CreateEventScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.dateTimeButton,
-                  styles.dateTimeButtonFlex, // Always flex for date buttons
+                  styles.dateTimeButtonFlex,
                   activePicker === "startDate" && styles.dateTimeButtonActive,
                 ]}
                 onPress={() => togglePicker("startDate")}
@@ -414,7 +413,7 @@ const CreateEventScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.dateTimeButton,
-                    styles.dateTimeButtonFlex, // Flex when both date and time are present
+                    styles.dateTimeButtonFlex,
                     activePicker === "startTime" && styles.dateTimeButtonActive,
                   ]}
                   onPress={() => togglePicker("startTime")}
@@ -438,7 +437,7 @@ const CreateEventScreen = () => {
               <TouchableOpacity
                 style={[
                   styles.dateTimeButton,
-                  styles.dateTimeButtonFlex, // Always flex for date buttons
+                  styles.dateTimeButtonFlex,
                   activePicker === "endDate" && styles.dateTimeButtonActive,
                 ]}
                 onPress={() => togglePicker("endDate")}
@@ -457,7 +456,7 @@ const CreateEventScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.dateTimeButton,
-                    styles.dateTimeButtonFlex, // Flex when both date and time are present
+                    styles.dateTimeButtonFlex,
                     activePicker === "endTime" && styles.dateTimeButtonActive,
                   ]}
                   onPress={() => togglePicker("endTime")}
@@ -688,7 +687,7 @@ const styles = StyleSheet.create({
   },
   dateTimeButtonFlex: {
     flex: 1,
-    minWidth: 0, // Override minWidth when using flex
+    minWidth: 0,
   },
   dateTimeButtonActive: {
     backgroundColor: COLORS.primary,

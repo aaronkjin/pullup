@@ -33,7 +33,6 @@ const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const [isPasswordCopied, setIsPasswordCopied] = useState(false);
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -44,14 +43,12 @@ const EventCard: React.FC<EventCardProps> = ({
     });
   };
 
-  // Handle copy password to clipboard
   const handleCopyPassword = async () => {
     if (event.eventPassword) {
       try {
         await Clipboard.setStringAsync(event.eventPassword);
         setIsPasswordCopied(true);
 
-        // Revert back to original state after 2 seconds
         setTimeout(() => {
           setIsPasswordCopied(false);
         }, 2000);
@@ -61,7 +58,6 @@ const EventCard: React.FC<EventCardProps> = ({
     }
   };
 
-  // Handle delete event
   const handleDeleteEvent = () => {
     Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
       {

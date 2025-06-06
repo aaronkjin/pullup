@@ -35,12 +35,10 @@ const MyEventsScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  // Settings modal state
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
   const userType = userInfo?.userType || "student";
 
-  // Fetch events
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -102,21 +100,18 @@ const MyEventsScreen = () => {
     }
   };
 
-  // Handle refresh
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchEvents();
     setRefreshing(false);
   };
 
-  // Handle pull up (for students viewing their registered events)
   const handlePullUp = async (eventId: string) => {
     try {
       // Find the current event to get its registration status
       const currentEvent = events.find((e) => e.id === eventId);
       if (!currentEvent) return;
 
-      // Optimistically update the event status
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
           event.id === eventId
@@ -136,7 +131,6 @@ const MyEventsScreen = () => {
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
 
-      // Revert the optimistic update on error
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
           event.id === eventId
@@ -166,17 +160,14 @@ const MyEventsScreen = () => {
         navigation.navigate("EventDetails", { event });
       }
     } else {
-      // Students see modal (to be implemented)
       console.log("Show student event modal for:", eventId);
     }
   };
 
-  // Handle delete event (for organizations)
   const handleDeleteEvent = async (eventId: string) => {
     try {
-      // Show confirmation alert first
       Alert.alert(
-        "Delete Event", 
+        "Delete Event",
         "Are you sure you want to delete this event? This action cannot be undone.",
         [
           { text: "Cancel", style: "cancel" },
@@ -185,23 +176,23 @@ const MyEventsScreen = () => {
             style: "destructive",
             onPress: async () => {
               try {
-                // Remove the event from the local state immediately for better UX
                 setEvents((prevEvents) =>
                   prevEvents.filter((event) => event.id !== eventId)
                 );
 
-                // Make API call to delete event from server
                 await EventApi.deleteEvent(eventId);
-                
+
                 Alert.alert("Success", "Event deleted successfully");
                 console.log("Event deleted successfully:", eventId);
               } catch (error) {
                 console.error("Error deleting event:", error);
-                
-                // Restore the event in local state if API call failed
-                fetchEvents(); // Refetch to restore state
-                
-                const errorMessage = error instanceof Error ? error.message : "Failed to delete event";
+
+                fetchEvents();
+
+                const errorMessage =
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to delete event";
                 Alert.alert("Error", errorMessage);
               }
             },
@@ -213,7 +204,6 @@ const MyEventsScreen = () => {
     }
   };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await logout();

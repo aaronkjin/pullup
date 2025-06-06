@@ -1,7 +1,7 @@
 import { Event, User } from '../types';
 
 // Both mock and real API services (for testing)
-import { EventApi as MockEventApi, setCurrentMockUser } from './api';
+import { EventApi as MockEventApi, setCurrentMockUser } from './mockApi';
 import { EventApi as RealEventApi, AuthApi as RealAuthApi, QRWristbandApi as RealQRWristbandApi } from './realApi';
 import { mockUsers } from './mockData';
 

@@ -91,7 +91,6 @@ const EventDetailsScreen = () => {
 
     const newCheckedInStatus = !attendee.checkedIn;
 
-    // Optimistic UI update
     setAttendees((prevAttendees) =>
       prevAttendees.map((a) =>
         a.id === attendeeId ? { ...a, checkedIn: newCheckedInStatus } : a

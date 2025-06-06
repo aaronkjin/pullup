@@ -67,41 +67,43 @@ const HomeScreen = () => {
   const handlePullUp = async (eventId: string) => {
     try {
       // Find the current event to get its registration status
-      const currentEvent = events.find(e => e.id === eventId);
+      const currentEvent = events.find((e) => e.id === eventId);
       if (!currentEvent) return;
 
       // Optimistically update the event status
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount - 1 : event.pullUpCount + 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount - 1
+                  : event.pullUpCount + 1,
               }
             : event
         )
       );
 
-      // Make the API call with current registration status
+      // Make API call with current registration status
       await EventApi.togglePullUp(eventId, currentEvent.userPulledUp);
-      
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
-      
-      // Revert the optimistic update on error
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount + 1 : event.pullUpCount - 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount + 1
+                  : event.pullUpCount - 1,
               }
             : event
         )
       );
-      
+
       Alert.alert("Error", "Failed to register for event. Please try again.");
     }
   };
@@ -119,17 +121,18 @@ const HomeScreen = () => {
   const handleModalPullUp = async (eventId: string, password?: string) => {
     try {
       // Find the current event to get its registration status
-      const currentEvent = events.find(e => e.id === eventId);
+      const currentEvent = events.find((e) => e.id === eventId);
       if (!currentEvent) return;
 
-      // Optimistically update the event status
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount - 1 : event.pullUpCount + 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount - 1
+                  : event.pullUpCount + 1,
               }
             : event
         )
@@ -137,22 +140,22 @@ const HomeScreen = () => {
 
       // Make the API call with current registration status
       await EventApi.togglePullUp(eventId, currentEvent.userPulledUp, password);
-      
     } catch (error) {
-      // Revert the optimistic update on error
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount + 1 : event.pullUpCount - 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount + 1
+                  : event.pullUpCount - 1,
               }
             : event
         )
       );
-      
-      throw error; // Re-throw to let modal handle the error
+
+      throw error;
     }
   };
 

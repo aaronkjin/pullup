@@ -40,7 +40,7 @@ def build_response(status_code, body):
         'body': json.dumps(body) if body is not None else ''
     }
 
-#define all path to function connections
+# Define all path to function connections
 def lambda_handler(event, context):
     
     http_method = event.get('httpMethod', '')
@@ -96,7 +96,7 @@ def calculate_event_score(participant_count, created_at, decay_factor=0.1):
         if isinstance(created_at, str) and created_at.isdigit():
             event_time = datetime.fromtimestamp(int(created_at))
         else:
-            event_time = datetime.now() #fallback
+            event_time = datetime.now() # Fallback
         
         hrs = (datetime.now() - event_time).total_seconds() / 3600
         

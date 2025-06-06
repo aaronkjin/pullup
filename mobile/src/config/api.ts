@@ -42,7 +42,6 @@ export const AuthTokenManager = {
   },
 };
 
-// Stanford CAS configuration (for future OAuth integration)
 export const CAS_CONFIG = {
   loginUrl: 'https://login.stanford.edu/cas/login',
   logoutUrl: 'https://login.stanford.edu/cas/logout',

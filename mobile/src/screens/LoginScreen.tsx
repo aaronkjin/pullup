@@ -279,7 +279,6 @@ const LoginScreen = ({
       }
     }
 
-    // Fallback for any remaining cases (should not be reached with new API calls)
     const userInfo: UserInfo = {
       firstName: userType === "student" ? firstName : undefined,
       lastName: userType === "student" ? lastName : undefined,
@@ -399,7 +398,7 @@ const LoginScreen = ({
               </TouchableOpacity>
             </View>
 
-            {/* Password Requirements (only show during sign up) */}
+            {/* Password Requirements */}
             {isSignUp && (
               <View style={styles.passwordRequirementsContainer}>
                 <Text style={styles.requirementsTitle}>
