@@ -64,8 +64,27 @@ const MyEventsScreen = () => {
         console.log('Could not extract valid student_id from token, using empty array');
         setEvents([]);
       } else {
-        const data = await EventApi.getOrganizationEvents();
-        setEvents(data);
+        // Extract org_id from auth token for organizations
+        const token = await AuthTokenManager.getToken();
+        console.log('Current auth token for org:', token);
+        
+        if (token && token.startsWith('org_')) {
+          // Parse token format: org_${org_id}_${timestamp}
+          const parts = token.split('_');
+          if (parts.length >= 2) {
+            const orgId = parseInt(parts[1]);
+            console.log('Extracted org_id:', orgId);
+            
+            if (!isNaN(orgId)) {
+              const data = await EventApi.getOrganizationEvents(orgId);
+              setEvents(data);
+              return;
+            }
+          }
+        }
+        
+        console.log('Could not extract valid org_id from token, using empty array');
+        setEvents([]);
       }
     } catch (error) {
       console.error("Failed to fetch events:", error);

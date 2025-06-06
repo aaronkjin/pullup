@@ -3,36 +3,83 @@ import { get, post, put, del } from './httpClient';
 
 // Backend API response types (different from our frontend types)
 interface BackendEvent {
-  eventId: string;
-  orgId: string;
-  orgName: string;
-  name: string;
-  timeLocation: string;
-  description: string;
+  event_id?: number;
+  org_id?: number;
+  name?: string;
+  event_date?: string;
+  event_time?: string;
+  location?: string;
+  description?: string;
+  participant_count?: number;
+  image_url?: string;
+  is_public?: boolean;
+  passcode?: string | null;
+  created_at?: string;
+  // Legacy fields for backward compatibility
+  eventId?: string;
+  orgId?: string;
+  orgName?: string;
+  timeLocation?: string;
   pullUpCount?: number;
   userPulledUp?: boolean;
   isPrivate?: boolean;
   imageUrl?: string;
-  created_at?: string;
 }
 
 // Transform backend event response to frontend Event type
 const transformBackendEvent = (backendEvent: BackendEvent): Event => {
+  // Handle both new API format and legacy format
+  const eventId = backendEvent.event_id || backendEvent.eventId || String(Date.now());
+  const orgId = backendEvent.org_id || backendEvent.orgId || '';
+  const name = backendEvent.name || 'Untitled Event';
+  const description = backendEvent.description || '';
+  const location = backendEvent.location || backendEvent.timeLocation || 'TBD';
+  const imageUrl = backendEvent.image_url || backendEvent.imageUrl || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94';
+  const isPublic = backendEvent.is_public !== undefined ? backendEvent.is_public : !backendEvent.isPrivate;
+  const participantCount = backendEvent.participant_count || backendEvent.pullUpCount || 0;
+  const createdAt = backendEvent.created_at || String(Math.floor(Date.now() / 1000));
+  
+  // Construct date time from separate date and time fields
+  let dateTime = new Date().toISOString();
+  if (backendEvent.event_date && backendEvent.event_time) {
+    try {
+      // Convert "12/12/2022" and "12:12 AM" to ISO string
+      const dateParts = backendEvent.event_date.split('/');
+      if (dateParts.length === 3) {
+        const month = dateParts[0].padStart(2, '0');
+        const day = dateParts[1].padStart(2, '0');
+        const year = dateParts[2];
+        const dateStr = `${year}-${month}-${day}`;
+        
+        // Parse time (handle AM/PM)
+        let timeStr = backendEvent.event_time;
+        const date = new Date(`${dateStr} ${timeStr}`);
+        if (!isNaN(date.getTime())) {
+          dateTime = date.toISOString();
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to parse event date/time:', error);
+    }
+  }
+
   return {
-    id: backendEvent.eventId,
-    title: backendEvent.name,
-    description: backendEvent.description,
-    organizerId: backendEvent.orgId,
-    organizerName: backendEvent.orgName,
-    organizerImageUrl: `https://logo.clearbit.com/${backendEvent.orgName.toLowerCase().replace(/\s+/g, '')}.edu`, // Default org image
-    location: backendEvent.timeLocation, // Backend combines time and location
-    dateTime: new Date().toISOString(), // TODO: Extract proper date from timeLocation or update backend
-    imageUrl: backendEvent.imageUrl || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94', // Default event image
-    isPrivate: backendEvent.isPrivate || false, // TODO: Add privacy setting to backend
-    pullUpCount: backendEvent.pullUpCount || 0, // TODO: Add pullUpCount to backend
-    userPulledUp: backendEvent.userPulledUp || false, // TODO: Add user pull up status to backend
-    eventPassword: undefined, // TODO: Add event password for private events
-    created_at: backendEvent.created_at || String(Math.floor(Date.now() / 1000)), // Use backend timestamp or current time
+    id: String(eventId),
+    title: name,
+    description: description,
+    organizerId: String(orgId),
+    organizerName: backendEvent.orgName || 'Organization',
+    organizerImageUrl: backendEvent.orgName 
+      ? `https://logo.clearbit.com/${backendEvent.orgName.toLowerCase().replace(/\s+/g, '')}.edu`
+      : 'https://logo.clearbit.com/stanford.edu',
+    location: location,
+    dateTime: dateTime,
+    imageUrl: imageUrl,
+    isPrivate: !isPublic,
+    pullUpCount: participantCount,
+    userPulledUp: backendEvent.userPulledUp || false,
+    eventPassword: backendEvent.passcode || undefined,
+    created_at: createdAt,
   };
 };
 
@@ -70,6 +117,9 @@ const ENDPOINTS = {
   
   // Student Events
   studentEvents: '/students-events/student',
+  
+  // Organization Events
+  orgEvents: '/orgs/org',
 };
 
 export const EventApi = {
@@ -140,25 +190,69 @@ export const EventApi = {
 
   // Create a new event (for organization users)
   createEvent: async (eventData: {
-    title: string;
-    description: string;
-    date: string;
-    time: string;
-    location: string;
-    category: string;
-    isPrivate: boolean;
-    imageUrl?: string;
-    capacity?: number;
+    org_id: number;
+    name: string;
+    event_date?: string;
+    event_time?: string;
+    location?: string;
+    description?: string;
+    participant_count?: number;
+    image_url?: string;
+    is_public?: boolean;
+    passcode?: string;
   }): Promise<Event> => {
-    // Transform frontend data to backend format
-    const backendData = {
-      name: eventData.title,
-      description: eventData.description,
-      timeLocation: `${eventData.date} ${eventData.time} at ${eventData.location}`,
-      orgId: 'org1', // TODO: Get actual org ID from user context
-    };
-    const backendEvent = await post<BackendEvent>(ENDPOINTS.events, backendData);
-    return transformBackendEvent(backendEvent);
+    try {
+      console.log('Creating event with data:', eventData);
+      
+      const response = await post<any>(ENDPOINTS.events, eventData);
+      
+      console.log('Event creation API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle the actual backend response structure: { "message": "Event created successfully", "event_id": 1 }
+      let eventId = '';
+      if (response && typeof response === 'object') {
+        eventId = String(response.event_id || response.eventId || response.id || Date.now());
+        console.log('Extracted event_id:', eventId);
+      }
+      
+      // Return Event object with proper structure
+      const createdEvent: Event = {
+        id: eventId,
+        title: eventData.name,
+        description: eventData.description || '',
+        organizerId: String(eventData.org_id),
+        organizerName: 'Organization', // TODO: Get from backend response
+        organizerImageUrl: 'https://logo.clearbit.com/stanford.edu',
+        location: eventData.location || '',
+        dateTime: eventData.event_date && eventData.event_time ? `${eventData.event_date} ${eventData.event_time}` : new Date().toISOString(),
+        imageUrl: eventData.image_url || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94',
+        isPrivate: !eventData.is_public,
+        pullUpCount: 0,
+        userPulledUp: false,
+        eventPassword: eventData.passcode,
+        created_at: String(Math.floor(Date.now() / 1000)),
+      };
+      
+      console.log('Returning created event:', createdEvent);
+      return createdEvent;
+      
+    } catch (error: any) {
+      console.error('Event creation error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
+      
+      // Add specific handling for 500 errors
+      if (error.response?.status === 500) {
+        console.error('Server error (500) - Backend issue with event creation');
+        console.error('Request data that caused error:', eventData);
+      }
+      
+      throw error;
+    }
   },
 
   // Update an event
@@ -218,9 +312,34 @@ export const EventApi = {
   },
 
   // Get events for organization (their created events)
-  getOrganizationEvents: async (): Promise<Event[]> => {
-    const backendEvents = await get<BackendEvent[]>(`${ENDPOINTS.events}/organization`);
-    return backendEvents.map(transformBackendEvent);
+  getOrganizationEvents: async (orgId: number): Promise<Event[]> => {
+    try {
+      console.log('Fetching organization events for org_id:', orgId);
+      
+      const response = await post<any>(ENDPOINTS.orgEvents, { org_id: orgId });
+      
+      console.log('Organization events API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle the API response structure: { "events": [...], "count": 0 }
+      if (response && typeof response === 'object' && Array.isArray(response.events)) {
+        console.log('Found organization events array with length:', response.events.length);
+        console.log('Events count:', response.count);
+        return response.events.map(transformBackendEvent);
+      }
+      
+      console.log('No events array found in organization events response, returning empty array');
+      return [];
+      
+    } catch (error: any) {
+      console.error('Error fetching organization events:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return [];
+    }
   },
 };
 
