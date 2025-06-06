@@ -161,8 +161,10 @@ const MyEventsScreen = () => {
   // Handle event press
   const handleEventPress = (eventId: string) => {
     if (userType === "organization") {
-      // Organizations navigate to detailed event management screen
-      navigation.navigate("EventDetails", { eventId });
+      const event = events.find((e) => e.id === eventId);
+      if (event) {
+        navigation.navigate("EventDetails", { event });
+      }
     } else {
       // Students see modal (to be implemented)
       console.log("Show student event modal for:", eventId);

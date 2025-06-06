@@ -45,11 +45,16 @@ export interface EventParticipant {
 }
 
 export type RootStackParamList = {
-  Main: undefined;
-  EventDetails: { eventId: string };
-  CreateEvent: undefined;
+  Auth: undefined;
+  Main: { screen?: string };
+  Home: undefined;
+  TopEvents: undefined;
+  MyEvents: undefined;
   Profile: undefined;
+  CreateEvent: undefined;
+  EventDetails: { event: Event };
   QRWristband: { eventId: string };
+  Onboarding: undefined;
 };
 
 export type StudentTabParamList = {

@@ -14,6 +14,8 @@ export const COLORS = {
   error: '#FF3B30', // Red for errors
   disabled: '#D1D1D6', // Disabled background
   disabledText: '#C7C7CC', // Disabled text
+  lightBlue: '#EBF5FF', // A very light blue for backgrounds
+  lightRed: '#FFE4E4', // A very light red for delete actions
 };
 
 export const SPACING = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
-  ActivityIndicator,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Icon from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 
 import { RootStackParamList, Event } from "../types";
-import { EventApi } from "../services/apiProvider";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
 type EventDetailsRouteProp = RouteProp<RootStackParamList, "EventDetails">;
@@ -23,162 +23,232 @@ type EventDetailsNavigationProp = NativeStackNavigationProp<
   "EventDetails"
 >;
 
+interface Attendee {
+  id: string;
+  name: string;
+  checkedIn: boolean;
+}
+
+const mockAttendees: Attendee[] = [
+  { id: "1", name: "John Doe", checkedIn: false },
+  { id: "2", name: "Jane Smith", checkedIn: false },
+  { id: "3", name: "Sam Wilson", checkedIn: false },
+  { id: "4", name: "Michael Brown", checkedIn: true },
+  { id: "5", name: "Emily Davis", checkedIn: false },
+];
+
 const EventDetailsScreen = () => {
   const route = useRoute<EventDetailsRouteProp>();
   const navigation = useNavigation<EventDetailsNavigationProp>();
-  const { eventId } = route.params;
+  const { event } = route.params;
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [attendees, setAttendees] = useState<Attendee[]>(mockAttendees);
+  const [isPasswordCopied, setIsPasswordCopied] = useState(false);
 
-  // Fetch event details
-  const fetchEventDetails = async () => {
-    try {
-      setLoading(true);
-      console.log("Fetching event details for eventId:", eventId);
-      const eventData = await EventApi.getEventById(eventId);
-      console.log("Received event data:", eventData);
-      setEvent(eventData);
-
-      // Set header title
-      if (eventData) {
-        navigation.setOptions({
-          title: eventData.title,
-        });
-      }
-    } catch (error) {
-      console.error("Failed to fetch event details:", error);
-      console.error("EventId that failed:", eventId);
-      // Log the route params to debug
-      console.error("Route params:", route.params);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Navigate to QR wristband screen
-  const handleGetWristband = () => {
-    navigation.navigate("QRWristband", { eventId });
-  };
+  // Set header title
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: event.title,
+    });
+  }, [navigation, event.title]);
 
   // Format date
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
-      weekday: "long",
       month: "long",
       day: "numeric",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
   };
 
-  useEffect(() => {
-    fetchEventDetails();
-  }, [eventId]);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
+  const handleCheckIn = (attendeeId: string) => {
+    setAttendees((prevAttendees) =>
+      prevAttendees.map((attendee) =>
+        attendee.id === attendeeId
+          ? { ...attendee, checkedIn: !attendee.checkedIn }
+          : attendee
+      )
     );
-  }
+  };
 
-  if (!event) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Event not found</Text>
-      </View>
-    );
-  }
+  const handleCopyPassword = async () => {
+    if (event.eventPassword) {
+      await Clipboard.setStringAsync(event.eventPassword);
+      setIsPasswordCopied(true);
+      setTimeout(() => setIsPasswordCopied(false), 2000);
+    }
+  };
+
+  const handleDeleteEvent = () => {
+    Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          // TODO: Add API call to delete event from server
+          console.log("Event deleted:", event.id);
+          navigation.goBack();
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        {/* Event Image */}
         {event.imageUrl && (
-          <View style={styles.imageContainer}>
-            <Image
-              source={{ uri: event.imageUrl }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            {event.isPrivate && (
-              <View style={styles.privateBadge}>
-                <Icon name="lock-closed" size={12} color="#FFF" />
-                <Text style={styles.privateBadgeText}>Private Event</Text>
-              </View>
-            )}
-          </View>
+          <Image
+            source={{ uri: event.imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
         )}
 
         <View style={styles.contentContainer}>
-          {/* Event Header */}
-          <View style={styles.headerContainer}>
-            <View style={styles.organizerContainer}>
-              <Image
-                source={{ uri: event.organizerImageUrl }}
-                style={styles.organizerImage}
-              />
-              <Text style={styles.organizerName}>{event.organizerName}</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.title}>{event.title}</Text>
+              <View style={styles.organizerContainer}>
+                <Image
+                  source={{ uri: event.organizerImageUrl }}
+                  style={styles.organizerImage}
+                />
+                <Text style={styles.organizerName}>{event.organizerName}</Text>
+              </View>
             </View>
+            {event.isPrivate && (
+              <View style={styles.privateContainer}>
+                <Ionicons
+                  name="lock-closed"
+                  size={12}
+                  color={COLORS.secondaryText}
+                />
+                <Text style={styles.privateText}>Private</Text>
+              </View>
+            )}
+          </View>
 
-            <Text style={styles.title}>{event.title}</Text>
-
+          {/* Details */}
+          <View style={styles.detailsSection}>
             <View style={styles.detailRow}>
-              <Icon name="calendar" size={18} color={COLORS.secondaryText} />
+              <Ionicons
+                name="calendar-outline"
+                size={16}
+                color={COLORS.secondaryText}
+              />
               <Text style={styles.detailText}>
                 {formatDate(event.dateTime)}
               </Text>
             </View>
-
             <View style={styles.detailRow}>
-              <Icon name="location" size={18} color={COLORS.secondaryText} />
+              <Ionicons
+                name="location-outline"
+                size={16}
+                color={COLORS.secondaryText}
+              />
               <Text style={styles.detailText}>{event.location}</Text>
             </View>
-
-            {event.isPrivate && (
-              <View style={styles.privateContainer}>
-                <Icon name="lock-closed" size={16} color={COLORS.primary} />
-                <Text style={styles.privateText}>Private Event</Text>
-              </View>
-            )}
           </View>
 
           {/* Description */}
-          <View style={styles.descriptionContainer}>
-            <Text style={styles.sectionTitle}>About</Text>
-            <Text style={styles.description}>{event.description}</Text>
-          </View>
+          <Text style={styles.description}>{event.description}</Text>
 
-          {/* Pull Up Info */}
-          <View style={styles.pullUpContainer}>
-            <Icon name="person" size={20} color={COLORS.primary} />
-            <Text style={styles.pullUpCount}>{event.pullUpCount}</Text>
-            <Text style={styles.pullUpText}>people pulling up</Text>
-          </View>
-
-          {/* Action - Share only */}
-          <View style={styles.actionsContainer}>
+          {/* Event Password */}
+          {event.isPrivate && event.eventPassword && (
             <TouchableOpacity
-              style={styles.shareButton}
-              onPress={() => {
-                // TODO: Implement share functionality
-                console.log("Share event:", event.id);
-              }}
+              style={[
+                styles.passwordSection,
+                isPasswordCopied && styles.passwordSectionCopied,
+              ]}
+              onPress={handleCopyPassword}
+              activeOpacity={0.8}
             >
-              <Icon
-                name="share-social-outline"
-                size={24}
-                color={COLORS.primary}
-              />
-              <Text style={styles.shareButtonText}>Share Event</Text>
+              <View style={styles.passwordHeader}>
+                <Ionicons
+                  name="key-outline"
+                  size={16}
+                  color={isPasswordCopied ? "#059669" : COLORS.primary}
+                />
+                <Text style={styles.passwordLabel}>Event Password</Text>
+              </View>
+              <View style={styles.passwordContainer}>
+                <Text
+                  style={[
+                    styles.passwordText,
+                    isPasswordCopied && styles.passwordTextCopied,
+                  ]}
+                >
+                  {event.eventPassword}
+                </Text>
+                {isPasswordCopied && (
+                  <View style={styles.copiedIndicator}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color="#059669"
+                    />
+                    <Text style={styles.copiedText}>Copied!</Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
+          )}
+
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          {/* Attendees */}
+          <View style={styles.attendeesSection}>
+            <View style={styles.attendeesHeader}>
+              <Text style={styles.sectionTitle}>Attendees</Text>
+              <View style={styles.pullUpIndicator}>
+                <Ionicons name="people" size={18} color={COLORS.primary} />
+                <Text style={styles.pullUpCount}>{event.pullUpCount}</Text>
+                <Text style={styles.pullUpText}>pulling up</Text>
+              </View>
+            </View>
+
+            {attendees.map((attendee) => (
+              <TouchableOpacity
+                key={attendee.id}
+                style={styles.attendeeRow}
+                onPress={() => handleCheckIn(attendee.id)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.attendeeName,
+                    attendee.checkedIn && styles.attendeeNameCheckedIn,
+                  ]}
+                >
+                  {attendee.name}
+                </Text>
+                <View
+                  style={[
+                    styles.checkInCircle,
+                    attendee.checkedIn && styles.checkInCircleChecked,
+                  ]}
+                >
+                  {attendee.checkedIn && (
+                    <Ionicons name="checkmark" size={16} color="#FFF" />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
+
+          {/* Delete Button */}
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDeleteEvent}
+          >
+            <Ionicons name="trash-outline" size={20} color={COLORS.error} />
+            <Text style={styles.deleteButtonText}>Delete Event</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -190,145 +260,207 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  errorText: {
-    fontSize: FONT.sizes.l,
-    color: COLORS.error,
-  },
-  imageContainer: {
-    position: "relative",
-  },
   image: {
     width: "100%",
-    height: 250,
-  },
-  privateBadge: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: SPACING.s,
-    paddingVertical: 4,
-  },
-  privateBadgeText: {
-    color: "#FFF",
-    fontSize: FONT.sizes.xs,
-    fontWeight: "600",
-    marginLeft: 4,
+    height: 220,
   },
   contentContainer: {
     padding: SPACING.l,
   },
-  headerContainer: {
-    marginBottom: SPACING.l,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: SPACING.m,
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: SPACING.s,
+  },
+  title: {
+    fontSize: FONT.sizes.xxl,
+    fontWeight: "bold",
+    color: COLORS.text,
+    marginBottom: SPACING.s,
   },
   organizerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.s,
   },
   organizerImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: SPACING.xs,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: SPACING.s,
   },
   organizerName: {
-    fontSize: FONT.sizes.s,
-    fontWeight: "500",
+    fontSize: FONT.sizes.m,
     color: COLORS.secondaryText,
   },
-  title: {
-    fontSize: FONT.sizes.xxl,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginBottom: SPACING.m,
+  privateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F8F8",
+    paddingHorizontal: SPACING.s,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  privateText: {
+    fontSize: FONT.sizes.xs,
+    color: COLORS.secondaryText,
+    marginLeft: 4,
+  },
+  detailsSection: {
+    marginBottom: SPACING.l,
+    padding: SPACING.m,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
   },
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.xs,
+    marginBottom: SPACING.s,
   },
   detailText: {
-    fontSize: FONT.sizes.s,
-    color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
+    fontSize: FONT.sizes.m,
+    color: COLORS.text,
+    marginLeft: SPACING.m,
   },
-  privateContainer: {
+  description: {
+    fontSize: FONT.sizes.m,
+    color: COLORS.secondaryText,
+    lineHeight: 24,
+    marginBottom: SPACING.l,
+  },
+  passwordSection: {
+    backgroundColor: "#F0F7FF",
+    padding: SPACING.m,
+    borderRadius: 12,
+    marginBottom: SPACING.l,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+  },
+  passwordSectionCopied: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
+  },
+  passwordHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.s,
+  },
+  passwordLabel: {
+    fontSize: FONT.sizes.s,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginLeft: 6,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  passwordText: {
+    fontSize: FONT.sizes.m,
+    fontWeight: "700",
+    color: COLORS.primary,
+    letterSpacing: 1.5,
+    fontFamily: "monospace",
+  },
+  passwordTextCopied: {
+    color: "#059669",
+  },
+  copiedIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  copiedText: {
+    fontSize: FONT.sizes.s,
+    fontWeight: "600",
+    color: "#059669",
+    marginLeft: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: COLORS.border,
+    marginBottom: SPACING.l,
+  },
+  attendeesSection: {
+    marginBottom: SPACING.xl,
+  },
+  sectionTitle: {
+    fontSize: FONT.sizes.l,
+    fontWeight: "bold",
+    color: COLORS.text,
+  },
+  attendeesHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SPACING.m,
+  },
+  pullUpIndicator: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F0F7FF",
     paddingHorizontal: SPACING.s,
     paddingVertical: 4,
     borderRadius: 12,
-    marginTop: SPACING.s,
-  },
-  privateText: {
-    fontSize: FONT.sizes.xs,
-    color: COLORS.primary,
-    fontWeight: "500",
-  },
-  descriptionContainer: {
-    marginBottom: SPACING.l,
-  },
-  sectionTitle: {
-    fontSize: FONT.sizes.l,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginBottom: SPACING.s,
-  },
-  description: {
-    fontSize: FONT.sizes.m,
-    color: COLORS.text,
-    lineHeight: 24,
-  },
-  pullUpContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: SPACING.l,
   },
   pullUpCount: {
-    fontSize: FONT.sizes.m,
-    fontWeight: "600",
-    color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
+    fontSize: FONT.sizes.s,
+    fontWeight: "700",
+    color: COLORS.primary,
+    marginLeft: SPACING.s,
   },
   pullUpText: {
     fontSize: FONT.sizes.s,
     color: COLORS.secondaryText,
-    marginLeft: SPACING.xs,
+    marginLeft: SPACING.s,
   },
-  actionsContainer: {
-    marginBottom: SPACING.l,
-    paddingBottom: SPACING.l,
+  attendeeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: SPACING.m,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  shareButton: {
+  attendeeName: {
+    flex: 1,
+    fontSize: FONT.sizes.m,
+    color: COLORS.text,
+  },
+  attendeeNameCheckedIn: {
+    textDecorationLine: "line-through",
+    color: COLORS.secondaryText,
+  },
+  checkInCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkInCircleChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  deleteButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.m,
-    paddingVertical: SPACING.xs,
-    borderRadius: 20,
+    justifyContent: "center",
+    padding: SPACING.m,
+    borderRadius: 12,
+    backgroundColor: COLORS.lightRed,
+    marginTop: SPACING.l,
   },
-  shareButtonText: {
-    fontSize: FONT.sizes.s,
+  deleteButtonText: {
+    color: COLORS.error,
+    fontSize: FONT.sizes.m,
     fontWeight: "600",
-    color: "#FFF",
-    marginLeft: SPACING.xs,
+    marginLeft: SPACING.s,
   },
 });
 
