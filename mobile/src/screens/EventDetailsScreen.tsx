@@ -55,12 +55,16 @@ const EventDetailsScreen = () => {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    const datePart = date.toLocaleDateString("en-US", {
       month: "long",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
+    const timePart = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} at ${timePart}`;
   };
 
   const handleCheckIn = (attendeeId: string) => {

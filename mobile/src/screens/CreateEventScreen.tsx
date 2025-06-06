@@ -20,6 +20,18 @@ import { EventApi } from "../services/apiProvider";
 import { AuthTokenManager } from "../config/api";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
+const EVENT_IMAGE_CAROUSEL = [
+  "https://images.unsplash.com/photo-1508302882073-8af6be4c6688?q=80&w=2971&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1619139079319-ba9ff149a8c2?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1632988663082-4bac2c1847a0?q=80&w=3132&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1685410613011-23d2794971a7?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1564343656448-37fa0e1c324f?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1624565930667-e62d3beb8725?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1676768310070-f71e44192000?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1682795407633-648756ba31dd?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "https://images.unsplash.com/photo-1669003950464-d1971232d363?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+];
+
 const CreateEventScreen = () => {
   const navigation = useNavigation();
   const [title, setTitle] = useState("");
@@ -228,9 +240,10 @@ const CreateEventScreen = () => {
 
       console.log("Extracted org_id for event creation:", orgId);
 
-      // Use dummy image URL for now
-      const dummyImageUrl =
-        "https://images.unsplash.com/photo-1619139079319-ba9ff149a8c2?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+      const randomImageUrl =
+        EVENT_IMAGE_CAROUSEL[
+          Math.floor(Math.random() * EVENT_IMAGE_CAROUSEL.length)
+        ];
 
       // Format date and time for backend
       const eventDate = formatDateForBackend(startDate);
@@ -244,7 +257,7 @@ const CreateEventScreen = () => {
         event_time: eventTime,
         location,
         description,
-        image_url: dummyImageUrl,
+        image_url: randomImageUrl,
         is_public: !isPrivate,
         passcode: isPrivate ? eventPassword : undefined,
       };
@@ -308,16 +321,6 @@ const CreateEventScreen = () => {
             community
           </Text>
         </View>
-
-        {/* Image upload placeholder */}
-        <TouchableOpacity style={styles.imageUpload}>
-          <Ionicons
-            name="image-outline"
-            size={48}
-            color={COLORS.secondaryText}
-          />
-          <Text style={styles.imageUploadText}>Upload Event Image</Text>
-        </TouchableOpacity>
 
         {/* Form fields */}
         <View style={styles.formContainer}>
@@ -601,22 +604,6 @@ const styles = StyleSheet.create({
     fontSize: FONT.sizes.s,
     color: COLORS.secondaryText,
     lineHeight: 20,
-  },
-  imageUpload: {
-    height: 150,
-    backgroundColor: COLORS.card,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    borderStyle: "dashed",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: SPACING.l,
-  },
-  imageUploadText: {
-    fontSize: FONT.sizes.s,
-    color: COLORS.secondaryText,
-    marginTop: SPACING.s,
   },
   formContainer: {
     marginBottom: SPACING.l,
