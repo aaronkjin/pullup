@@ -12,7 +12,7 @@ const USE_MOCK_API = false;
 interface IEventApi {
   getEvents: (filters?: any) => Promise<Event[]>;
   getEventById: (id: string) => Promise<Event | null>;
-  togglePullUp: (id: string) => Promise<Event>;
+  togglePullUp: (id: string, password?: string) => Promise<Event>;
   getUserEvents: (studentId: number) => Promise<Event[]>;
   getOrganizationEvents: (orgId: number) => Promise<Event[]>;
   createEvent: (eventData: any) => Promise<Event>;
@@ -69,12 +69,12 @@ class EventApiProvider implements IEventApi {
     }
   }
 
-  async togglePullUp(id: string): Promise<Event> {
+  async togglePullUp(id: string, password?: string): Promise<Event> {
     if (USE_MOCK_API) {
       return MockEventApi.togglePullUp(id);
     }
     // Use real API implementation
-    return RealEventApi.togglePullUp(id);
+    return RealEventApi.togglePullUp(id, password);
   }
 
   async getUserEvents(studentId: number): Promise<Event[]> {

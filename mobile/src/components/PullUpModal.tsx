@@ -28,18 +28,23 @@ const PullUpModal: React.FC<PullUpModalProps> = ({
 }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   if (!event) return null;
 
   const handleConfirm = async () => {
-    if (event.isPrivate && !password.trim()) {
+    // For private events, only require password if user is NOT already pulled up
+    if (event.isPrivate && !event.userPulledUp && !password.trim()) {
       Alert.alert("Password Required", "Please enter the event password.");
       return;
     }
 
     setLoading(true);
     try {
-      await onConfirm(event.id, event.isPrivate ? password : undefined);
+      // Only pass password if it's a private event AND user is not already pulled up
+      const passwordToSend =
+        event.isPrivate && !event.userPulledUp ? password : undefined;
+      await onConfirm(event.id, passwordToSend);
       setPassword("");
       onClose();
     } catch (error) {
@@ -51,6 +56,7 @@ const PullUpModal: React.FC<PullUpModalProps> = ({
 
   const handleClose = () => {
     setPassword("");
+    setIsPasswordVisible(false);
     onClose();
   };
 
@@ -98,8 +104,8 @@ const PullUpModal: React.FC<PullUpModalProps> = ({
 
             <Text style={styles.description}>{event.description}</Text>
 
-            {/* Password Input for Private Events */}
-            {event.isPrivate && (
+            {/* Password Input for Private Events - only show if user not already pulled up */}
+            {event.isPrivate && !event.userPulledUp && (
               <View style={styles.passwordContainer}>
                 <Text style={styles.passwordLabel}>Event Password</Text>
                 <TextInput
@@ -107,9 +113,19 @@ const PullUpModal: React.FC<PullUpModalProps> = ({
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Enter password"
-                  secureTextEntry
+                  secureTextEntry={!isPasswordVisible}
                   autoCapitalize="none"
                 />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  <Ionicons
+                    name={isPasswordVisible ? "eye" : "eye-off"}
+                    size={20}
+                    color={COLORS.secondaryText}
+                  />
+                </TouchableOpacity>
               </View>
             )}
 
@@ -224,6 +240,7 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     marginBottom: SPACING.m,
+    position: "relative",
   },
   passwordLabel: {
     fontSize: FONT.sizes.s,
@@ -236,10 +253,20 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: 8,
     paddingHorizontal: SPACING.m,
+    paddingRight: 50,
     paddingVertical: SPACING.s,
     fontSize: FONT.sizes.s,
     color: COLORS.text,
     backgroundColor: COLORS.card,
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: SPACING.m,
+    top: 28,
+    padding: 2,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 24,
   },
   pullUpInfo: {
     flexDirection: "row",

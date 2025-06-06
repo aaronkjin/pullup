@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
 import { Event } from "../types";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
@@ -26,6 +28,8 @@ const EventCard: React.FC<EventCardProps> = ({
   onPullUp,
   userType = "student",
 }) => {
+  const [isPasswordCopied, setIsPasswordCopied] = useState(false);
+
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -35,6 +39,23 @@ const EventCard: React.FC<EventCardProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Handle copy password to clipboard
+  const handleCopyPassword = async () => {
+    if (event.eventPassword) {
+      try {
+        await Clipboard.setStringAsync(event.eventPassword);
+        setIsPasswordCopied(true);
+
+        // Revert back to copy icon after 2 seconds
+        setTimeout(() => {
+          setIsPasswordCopied(false);
+        }, 2000);
+      } catch (error) {
+        Alert.alert("Error", "Failed to copy password to clipboard");
+      }
+    }
   };
 
   return (
@@ -87,6 +108,33 @@ const EventCard: React.FC<EventCardProps> = ({
           <Ionicons name="location" size={14} color={COLORS.secondaryText} />
           <Text style={styles.location}>{event.location}</Text>
         </View>
+
+        {/* Event Password (only for organizations viewing their private events) */}
+        {event.isPrivate &&
+          userType === "organization" &&
+          event.eventPassword && (
+            <View style={styles.passwordSection}>
+              <Text style={styles.passwordLabel}>Event Password:</Text>
+              <View style={styles.passwordContainer}>
+                <Text style={styles.passwordText}>{event.eventPassword}</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.copyButton,
+                    isPasswordCopied && styles.copyButtonSuccess,
+                  ]}
+                  onPress={handleCopyPassword}
+                >
+                  <Ionicons
+                    name={isPasswordCopied ? "checkmark" : "copy-outline"}
+                    size={16}
+                    color={
+                      isPasswordCopied ? COLORS.background : COLORS.primary
+                    }
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
 
         {/* Pull up counter and action */}
         <View style={styles.actionsContainer}>
@@ -232,6 +280,47 @@ const styles = StyleSheet.create({
     color: COLORS.secondaryText,
     marginLeft: 4,
   },
+  passwordSection: {
+    backgroundColor: "#F0F7FF",
+    padding: SPACING.s,
+    borderRadius: 8,
+    marginBottom: SPACING.m,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  passwordLabel: {
+    fontSize: FONT.sizes.xs,
+    fontWeight: "600",
+    color: COLORS.text,
+    marginBottom: SPACING.xs,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  passwordText: {
+    fontSize: FONT.sizes.s,
+    fontWeight: "700",
+    color: COLORS.primary,
+    letterSpacing: 1,
+    fontFamily: "monospace",
+  },
+  copyButton: {
+    padding: SPACING.xs,
+    backgroundColor: COLORS.background,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 32,
+    minWidth: 32,
+  },
+  copyButtonSuccess: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
   actionsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -267,13 +356,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   pullUpButtonDisabled: {
-    backgroundColor: "#F8F8F8",
-    borderColor: "#F8F8F8",
+    borderColor: COLORS.border,
   },
   pullUpButtonText: {
     fontSize: FONT.sizes.s,
-    fontWeight: "600",
     color: COLORS.primary,
+    fontWeight: "600",
     marginLeft: 4,
   },
   pullUpButtonTextActive: {

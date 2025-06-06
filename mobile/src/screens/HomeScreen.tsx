@@ -86,15 +86,8 @@ const HomeScreen = () => {
   // Handle modal pull up confirmation
   const handleModalPullUp = async (eventId: string, password?: string) => {
     try {
-      // For private events, validate password
-      if (
-        selectedEvent?.isPrivate &&
-        password !== selectedEvent.eventPassword
-      ) {
-        throw new Error("Invalid password");
-      }
-
-      const updatedEvent = await EventApi.togglePullUp(eventId);
+      // Pass password to API - let backend handle validation
+      const updatedEvent = await EventApi.togglePullUp(eventId, password);
       setEvents(
         events.map((event) => (event.id === eventId ? updatedEvent : event))
       );

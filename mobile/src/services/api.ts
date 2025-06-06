@@ -40,12 +40,22 @@ export const EventApi = {
   },
 
   // Toggle pull up for event
-  togglePullUp: async (id: string): Promise<Event> => {
+  togglePullUp: async (id: string, password?: string): Promise<Event> => {
     await delay(200);
     const eventIndex = mockEvents.findIndex(event => event.id === id);
     if (eventIndex === -1) throw new Error('Event not found');
     
     const event = {...mockEvents[eventIndex]};
+    
+    // For private events, validate password
+    if (event.isPrivate && event.eventPassword) {
+      if (!password) {
+        throw new Error('Password required for private event');
+      }
+      if (password !== event.eventPassword) {
+        throw new Error('Invalid password');
+      }
+    }
     
     // Toggle pull up status
     if (event.userPulledUp) {
@@ -99,9 +109,9 @@ export const EventApi = {
   },
 
   // Legacy methods (keeping for backward compatibility during transition)
-  toggleLike: async (id: string): Promise<Event> => {
+  toggleLike: async (id: string, password?: string): Promise<Event> => {
     // Redirect to togglePullUp for backward compatibility
-    return EventApi.togglePullUp(id);
+    return EventApi.togglePullUp(id, password);
   },
 
   toggleSaved: async (id: string): Promise<Event> => {

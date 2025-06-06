@@ -388,10 +388,37 @@ def get_events_for_org(body):
 
 def pu_student_for_event(body):
     try:
-
         conn = get_db_connection()
         cursor = conn.cursor()
         
+        # Check if the event exists and get its details
+        event_query = """
+            SELECT is_public, passcode FROM Events 
+            WHERE event_id = %s
+        """
+        cursor.execute(event_query, (body['event_id'],))
+        event = cursor.fetchone()
+        
+        if not event:
+            cursor.close()
+            conn.close()
+            return build_response(404, {'error': 'Event not found'})
+        
+        is_public, passcode = event
+        
+        # For private events, validate the password
+        if not is_public:  
+            if not body.get('reg_code'):
+                cursor.close()
+                conn.close()
+                return build_response(403, {'message': 'Password required for private event'})
+            
+            if body.get('reg_code') != passcode:
+                cursor.close()
+                conn.close()
+                return build_response(403, {'message': 'Invalid password'})
+        
+        # Check if student is already registered
         check_query = """
             SELECT 1 FROM Students_Events 
             WHERE student_id = %s AND event_id = %s
@@ -399,8 +426,11 @@ def pu_student_for_event(body):
         cursor.execute(check_query, (body['student_id'], body['event_id']))
         
         if cursor.fetchone():
+            cursor.close()
+            conn.close()
             return build_response(409, {'error': 'Student already registered for this event'})
         
+        # Register the student
         query = """
             INSERT INTO Students_Events (student_id, event_id, reg_code, registered)
             VALUES (%s, %s, %s, %s)
@@ -413,6 +443,7 @@ def pu_student_for_event(body):
             body.get('registered', True)
         ))
         
+        # Update participant count
         update_query = """
             UPDATE Events 
             SET participant_count = participant_count + 1 

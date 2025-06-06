@@ -1,5 +1,6 @@
 import { Event, User, QRWristband } from '../types';
 import { get, post, put, del } from './httpClient';
+import { AuthTokenManager } from '../config/api';
 
 // Backend API response types (different from our frontend types)
 interface BackendEvent {
@@ -275,9 +276,66 @@ export const EventApi = {
   },
 
   // Toggle pull up for an event (new method)
-  togglePullUp: async (id: string): Promise<Event> => {
-    const backendEvent = await post<BackendEvent>(`${ENDPOINTS.event(id)}/pullup`);
-    return transformBackendEvent(backendEvent);
+  togglePullUp: async (id: string, password?: string): Promise<Event> => {
+    try {
+      // Extract student_id from auth token for private event registration
+      const token = await AuthTokenManager.getToken();
+      
+      if (!token || !token.startsWith("student_")) {
+        throw new Error("Must be logged in as a student to pull up to events");
+      }
+
+      // Parse token format: student_${student_id}_${timestamp}
+      const parts = token.split("_");
+      if (parts.length < 2) {
+        throw new Error("Invalid authentication token");
+      }
+
+      const studentId = parseInt(parts[1]);
+      if (isNaN(studentId)) {
+        throw new Error("Invalid student ID");
+      }
+
+      // Use the students-events/pu endpoint for registering
+      const requestData = {
+        student_id: studentId,
+        event_id: parseInt(id),
+        reg_code: password, // Send password as reg_code for private events
+        registered: true
+      };
+
+      console.log('Calling pull up API with data:', requestData);
+
+      const response = await post<any>('/students-events/pu', requestData);
+      
+      console.log('Pull up API response:', response);
+
+      // After successful registration, fetch the updated event data
+      // For now, return a mock updated event - in production, you'd fetch the latest event data
+      const events = await EventApi.getEvents();
+      const updatedEvent = events.find(event => event.id === id);
+      
+      if (updatedEvent) {
+        return {
+          ...updatedEvent,
+          userPulledUp: true,
+          pullUpCount: updatedEvent.pullUpCount + 1
+        };
+      }
+      
+      throw new Error("Event not found after registration");
+      
+    } catch (error: any) {
+      console.error('Pull up error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      
+      if (error.response?.status === 403) {
+        throw new Error("Invalid password for this private event");
+      }
+      
+      throw error;
+    }
   },
 
   // Get events for current user (students - their registered events)
