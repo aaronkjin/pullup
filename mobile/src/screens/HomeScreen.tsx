@@ -18,7 +18,9 @@ import { RootStackParamList, Event } from "../types";
 import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
 import PullUpModal from "../components/PullUpModal";
+import SettingsModal from "../components/SettingsModal";
 import { COLORS, SPACING, FONT } from "../utils/theme";
+import { useUser } from "../contexts/UserContext";
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -27,14 +29,18 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<
 
 const HomeScreen = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { logout } = useUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("all"); // 'all', 'public', 'private'
 
-  // Modal state
+  // Events modal state
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // Settings modal state
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
   // Fetch events
   const fetchEvents = async () => {
@@ -111,6 +117,15 @@ const HomeScreen = () => {
     return true;
   });
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -121,6 +136,12 @@ const HomeScreen = () => {
 
       <View style={styles.header}>
         <Text style={styles.title}>Pullup</Text>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => setSettingsModalVisible(true)}
+        >
+          <Ionicons name="settings-outline" size={24} color={COLORS.text} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -218,6 +239,13 @@ const HomeScreen = () => {
         onClose={closeModal}
         onConfirm={handleModalPullUp}
       />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={settingsModalVisible}
+        onClose={() => setSettingsModalVisible(false)}
+        onLogout={handleLogout}
+      />
     </SafeAreaView>
   );
 };
@@ -241,6 +269,9 @@ const styles = StyleSheet.create({
     fontSize: FONT.sizes.xl,
     fontWeight: "700",
     color: COLORS.text,
+  },
+  settingsButton: {
+    padding: SPACING.xs,
   },
   filtersContainer: {
     flexDirection: "row",

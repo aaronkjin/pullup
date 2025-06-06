@@ -40,12 +40,22 @@ const OrganizationTab = createBottomTabNavigator();
 
 interface StudentTabNavigatorProps {
   userInfo: UserInfo | null;
+  setIsAuthenticated: (auth: boolean) => void;
+  setUserInfo: (userInfo: UserInfo | null) => void;
 }
 
 // Student Tab Navigator (Home + My Events)
-const StudentTabNavigator = ({ userInfo }: StudentTabNavigatorProps) => {
+const StudentTabNavigator = ({
+  userInfo,
+  setIsAuthenticated,
+  setUserInfo,
+}: StudentTabNavigatorProps) => {
   return (
-    <UserProvider userInfo={userInfo} setUserInfo={() => {}}>
+    <UserProvider
+      userInfo={userInfo}
+      setUserInfo={setUserInfo}
+      setIsAuthenticated={setIsAuthenticated}
+    >
       <StudentTab.Navigator
         screenOptions={{
           tabBarActiveTintColor: COLORS.primary,
@@ -95,14 +105,22 @@ const StudentTabNavigator = ({ userInfo }: StudentTabNavigatorProps) => {
 
 interface OrganizationTabNavigatorProps {
   userInfo: UserInfo | null;
+  setIsAuthenticated: (auth: boolean) => void;
+  setUserInfo: (userInfo: UserInfo | null) => void;
 }
 
 // Organization Tab Navigator (My Events + Create)
 const OrganizationTabNavigator = ({
   userInfo,
+  setIsAuthenticated,
+  setUserInfo,
 }: OrganizationTabNavigatorProps) => {
   return (
-    <UserProvider userInfo={userInfo} setUserInfo={() => {}}>
+    <UserProvider
+      userInfo={userInfo}
+      setUserInfo={setUserInfo}
+      setIsAuthenticated={setIsAuthenticated}
+    >
       <OrganizationTab.Navigator
         screenOptions={{
           tabBarActiveTintColor: COLORS.primary,
@@ -209,7 +227,14 @@ const AppNavigator = ({
               <Stack.Screen name="Main" options={{ headerShown: false }}>
                 {(
                   props: NativeStackScreenProps<RootStackParamList, "Main">
-                ) => <StudentTabNavigator {...props} userInfo={userInfo} />}
+                ) => (
+                  <StudentTabNavigator
+                    {...props}
+                    userInfo={userInfo}
+                    setIsAuthenticated={setIsAuthenticated}
+                    setUserInfo={setUserInfo}
+                  />
+                )}
               </Stack.Screen>
             )}
 
@@ -220,7 +245,12 @@ const AppNavigator = ({
                   {(
                     props: NativeStackScreenProps<RootStackParamList, "Main">
                   ) => (
-                    <OrganizationTabNavigator {...props} userInfo={userInfo} />
+                    <OrganizationTabNavigator
+                      {...props}
+                      userInfo={userInfo}
+                      setIsAuthenticated={setIsAuthenticated}
+                      setUserInfo={setUserInfo}
+                    />
                   )}
                 </Stack.Screen>
 

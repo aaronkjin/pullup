@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList, Event } from "../types";
 import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
+import SettingsModal from "../components/SettingsModal";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 import { useUser } from "../contexts/UserContext";
 import { AuthTokenManager } from "../config/api";
@@ -28,10 +30,13 @@ type MyEventsScreenNavigationProp = NativeStackNavigationProp<
 
 const MyEventsScreen = () => {
   const navigation = useNavigation<MyEventsScreenNavigationProp>();
-  const { userInfo } = useUser();
+  const { userInfo, logout } = useUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Settings modal state
+  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
   const userType = userInfo?.userType || "student";
 
@@ -44,15 +49,15 @@ const MyEventsScreen = () => {
       if (userType === "student") {
         // Extract student_id from auth token
         const token = await AuthTokenManager.getToken();
-        console.log('Current auth token:', token);
-        
-        if (token && token.startsWith('student_')) {
+        console.log("Current auth token:", token);
+
+        if (token && token.startsWith("student_")) {
           // Parse token format: student_${student_id}_${timestamp}
-          const parts = token.split('_');
+          const parts = token.split("_");
           if (parts.length >= 2) {
             const studentId = parseInt(parts[1]);
-            console.log('Extracted student_id:', studentId);
-            
+            console.log("Extracted student_id:", studentId);
+
             if (!isNaN(studentId)) {
               const data = await EventApi.getUserEvents(studentId);
               setEvents(data);
@@ -60,8 +65,10 @@ const MyEventsScreen = () => {
             }
           }
         }
-        
-        console.log('Could not extract valid student_id from token, using empty array');
+
+        console.log(
+          "Could not extract valid student_id from token, using empty array"
+        );
         setEvents([]);
       } else {
         const data = await EventApi.getOrganizationEvents();
@@ -114,6 +121,15 @@ const MyEventsScreen = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -144,6 +160,12 @@ const MyEventsScreen = () => {
 
       <View style={styles.header}>
         <Text style={styles.title}>My Events</Text>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => setSettingsModalVisible(true)}
+        >
+          <Ionicons name="settings-outline" size={24} color={COLORS.text} />
+        </TouchableOpacity>
       </View>
 
       {loading && !refreshing ? (
@@ -174,6 +196,13 @@ const MyEventsScreen = () => {
           ListEmptyComponent={renderEmptyState}
         />
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={settingsModalVisible}
+        onClose={() => setSettingsModalVisible(false)}
+        onLogout={handleLogout}
+      />
     </SafeAreaView>
   );
 };
@@ -197,6 +226,9 @@ const styles = StyleSheet.create({
     fontSize: FONT.sizes.xl,
     fontWeight: "700",
     color: COLORS.text,
+  },
+  settingsButton: {
+    padding: SPACING.xs,
   },
   loadingContainer: {
     flex: 1,
