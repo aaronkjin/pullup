@@ -62,6 +62,12 @@ const ENDPOINTS = {
     login: '/students/login',
   },
   
+  // Organizations
+  orgs: {
+    create: '/orgs/create',
+    login: '/orgs/login',
+  },
+  
   // Student Events
   studentEvents: '/students-events/student',
 };
@@ -349,6 +355,93 @@ export const AuthApi = {
       
     } catch (error: any) {
       console.error('Student login error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      throw error;
+    }
+  },
+
+  // Create a new organization
+  createOrganization: async (orgData: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<{
+    message: string;
+    org_id: number;
+  }> => {
+    try {
+      console.log('Creating organization with data:', orgData);
+      
+      const response = await post<any>(ENDPOINTS.orgs.create, orgData);
+      
+      console.log('Organization creation API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle different possible response structures
+      if (response && typeof response === 'object') {
+        return {
+          message: response.message || 'Organization created successfully',
+          org_id: response.org_id || response.orgId || response.id || 0
+        };
+      }
+      
+      // Fallback response
+      return {
+        message: 'Organization created successfully',
+        org_id: 0
+      };
+      
+    } catch (error: any) {
+      console.error('Organization creation error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      // Re-throw the error so the LoginScreen can handle it
+      throw error;
+    }
+  },
+
+  // Login organization
+  loginOrganization: async (loginData: {
+    email: string;
+    password: string;
+  }): Promise<{
+    message: string;
+    org_id: number;
+    name: string;
+    email: string;
+  }> => {
+    try {
+      console.log('Logging in organization with data:', { email: loginData.email, password: '[HIDDEN]' });
+      
+      const response = await post<any>(ENDPOINTS.orgs.login, loginData);
+      
+      console.log('Organization login API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      if (response && typeof response === 'object') {
+        return {
+          message: response.message || 'Login successful',
+          org_id: response.org_id || response.orgId || response.id || 0,
+          name: response.name || '',
+          email: response.email || loginData.email
+        };
+      }
+      return {
+        message: 'Login successful',
+        org_id: 0,
+        name: '',
+        email: loginData.email
+      };
+      
+    } catch (error: any) {
+      console.error('Organization login error details:', error);
       console.error('Error response:', error.response);
       console.error('Error response data:', error.response?.data);
       console.error('Error message:', error.message);
