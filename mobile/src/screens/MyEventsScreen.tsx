@@ -19,6 +19,7 @@ import { EventApi } from "../services/apiProvider";
 import EventCard from "../components/EventCard";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 import { useUser } from "../contexts/UserContext";
+import { AuthTokenManager } from "../config/api";
 
 type MyEventsScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -40,11 +41,32 @@ const MyEventsScreen = () => {
       setLoading(true);
       // For students: get their registered events
       // For organizations: get their created events
-      const data =
-        userType === "student"
-          ? await EventApi.getUserEvents()
-          : await EventApi.getOrganizationEvents(userInfo);
-      setEvents(data);
+      if (userType === "student") {
+        // Extract student_id from auth token
+        const token = await AuthTokenManager.getToken();
+        console.log('Current auth token:', token);
+        
+        if (token && token.startsWith('student_')) {
+          // Parse token format: student_${student_id}_${timestamp}
+          const parts = token.split('_');
+          if (parts.length >= 2) {
+            const studentId = parseInt(parts[1]);
+            console.log('Extracted student_id:', studentId);
+            
+            if (!isNaN(studentId)) {
+              const data = await EventApi.getUserEvents(studentId);
+              setEvents(data);
+              return;
+            }
+          }
+        }
+        
+        console.log('Could not extract valid student_id from token, using empty array');
+        setEvents([]);
+      } else {
+        const data = await EventApi.getOrganizationEvents();
+        setEvents(data);
+      }
     } catch (error) {
       console.error("Failed to fetch events:", error);
       Alert.alert(

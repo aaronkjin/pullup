@@ -55,6 +55,15 @@ const ENDPOINTS = {
     register: '/auth/register',
     me: '/auth/me',
   },
+  
+  // Students
+  students: {
+    create: '/students/create',
+    login: '/students/login',
+  },
+  
+  // Student Events
+  studentEvents: '/students-events/student',
 };
 
 export const EventApi = {
@@ -76,8 +85,33 @@ export const EventApi = {
     }
     
     const url = `${ENDPOINTS.events}${params.toString() ? `?${params.toString()}` : ''}`;
-    const backendEvents = await get<BackendEvent[]>(url);
-    return backendEvents.map(transformBackendEvent);
+    
+    try {
+      console.log('Fetching events from:', url);
+      
+      const response = await get<any>(url);
+      
+      console.log('Events API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle the API response structure: { "events": [...] }
+      if (response && typeof response === 'object' && Array.isArray(response.events)) {
+        console.log('Found events array with length:', response.events.length);
+        return response.events.map(transformBackendEvent);
+      }
+      
+      console.log('No events array found in response, returning empty array');
+      return [];
+      
+    } catch (error: any) {
+      console.error('Error fetching events:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return [];
+    }
   },
 
   // Get event by ID
@@ -147,9 +181,34 @@ export const EventApi = {
   },
 
   // Get events for current user (students - their registered events)
-  getUserEvents: async (): Promise<Event[]> => {
-    const backendEvents = await get<BackendEvent[]>(`${ENDPOINTS.events}/user`);
-    return backendEvents.map(transformBackendEvent);
+  getUserEvents: async (studentId: number): Promise<Event[]> => {
+    try {
+      console.log('Fetching user events for student_id:', studentId);
+      
+      const response = await post<any>(ENDPOINTS.studentEvents, { student_id: studentId });
+      
+      console.log('User events API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle the API response structure: { "events": [...], "count": 0 }
+      if (response && typeof response === 'object' && Array.isArray(response.events)) {
+        console.log('Found user events array with length:', response.events.length);
+        console.log('Events count:', response.count);
+        return response.events.map(transformBackendEvent);
+      }
+      
+      console.log('No events array found in user events response, returning empty array');
+      return [];
+      
+    } catch (error: any) {
+      console.error('Error fetching user events:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      return [];
+    }
   },
 
   // Get events for organization (their created events)
@@ -210,9 +269,95 @@ export const AuthApi = {
   }): Promise<User> => {
     return await put<User>(ENDPOINTS.auth.me, profileData);
   },
+
+  // Create a new student
+  createStudent: async (studentData: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<{
+    message: string;
+    student_id: number;
+  }> => {
+    try {
+      console.log('Creating student with data:', studentData);
+      
+      const response = await post<any>(ENDPOINTS.students.create, studentData);
+      
+      console.log('Student creation API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      // Handle different possible response structures
+      if (response && typeof response === 'object') {
+        return {
+          message: response.message || 'Student created successfully',
+          student_id: response.student_id || response.studentId || response.id || 0
+        };
+      }
+      
+      // Fallback response
+      return {
+        message: 'Student created successfully',
+        student_id: 0
+      };
+      
+    } catch (error: any) {
+      console.error('Student creation error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      // Re-throw the error so the LoginScreen can handle it
+      throw error;
+    }
+  },
+
+  // Login student
+  loginStudent: async (loginData: {
+    email: string;
+    password: string;
+  }): Promise<{
+    message: string;
+    student_id: number;
+    name: string;
+    email: string;
+  }> => {
+    try {
+      console.log('Logging in student with data:', { email: loginData.email, password: '[HIDDEN]' });
+      
+      const response = await post<any>(ENDPOINTS.students.login, loginData);
+      
+      console.log('Student login API response:', response);
+      console.log('Type of response:', typeof response);
+      console.log('Response keys:', Object.keys(response || {}));
+      
+      if (response && typeof response === 'object') {
+        return {
+          message: response.message || 'Login successful',
+          student_id: response.student_id || response.studentId || response.id || 0,
+          name: response.name || '',
+          email: response.email || loginData.email
+        };
+      }
+      return {
+        message: 'Login successful',
+        student_id: 0,
+        name: '',
+        email: loginData.email
+      };
+      
+    } catch (error: any) {
+      console.error('Student login error details:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      
+      throw error;
+    }
+  },
 };
 
-// Error handling utility
 export const handleApiError = (error: any): string => {
   if (error.response?.data?.message) {
     return error.response.data.message;

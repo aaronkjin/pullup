@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../utils/theme";
+import { AuthApi } from "../services/realApi";
+import { AuthTokenManager } from "../config/api";
 
 interface UserInfo {
   firstName?: string;
@@ -75,7 +77,7 @@ const LoginScreen = ({
     }
   };
 
-  const handleAuth = () => {
+  const handleAuth = async () => {
     if (isSignUp) {
       if (userType === "student") {
         if (
@@ -111,6 +113,109 @@ const LoginScreen = ({
     if (!email.includes("@stanford.edu")) {
       Alert.alert("Error", "Please use a valid Stanford email address");
       return;
+    }
+
+    if (isSignUp && userType === "student") {
+      try {
+        const response = await AuthApi.createStudent({
+          name: `${firstName} ${lastName}`,
+          email: email,
+          password: password,
+        });
+        
+        const tempToken = `student_${response.student_id}_${Date.now()}`;
+        await AuthTokenManager.setToken(tempToken);
+        console.log('Stored temporary auth token:', tempToken);
+        
+        Alert.alert(
+          "Success!", 
+          `Student account created successfully!`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                const userInfo: UserInfo = {
+                  firstName: firstName,
+                  lastName: lastName,
+                  email,
+                  userType: userType,
+                };
+                setUserInfo(userInfo);
+                setIsAuthenticated(true);
+              }
+            }
+          ]
+        );
+        return;
+      } catch (error: any) {
+        console.error("Student creation error:", error);
+        
+        let errorMessage = "Failed to create student account. Please try again.";
+        
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        Alert.alert("Error", errorMessage);
+        return;
+      }
+    }
+
+    if (!isSignUp && userType === "student") {
+      try {
+        const response = await AuthApi.loginStudent({
+          email: email,
+          password: password,
+        });
+        
+        const tempToken = `student_${response.student_id}_${Date.now()}`;
+        await AuthTokenManager.setToken(tempToken);
+        console.log('Stored login auth token:', tempToken);
+        
+        const nameParts = response.name.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        Alert.alert(
+          "Welcome back!", 
+          `Login successful! Welcome back, ${response.name}`,
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                const userInfo: UserInfo = {
+                  firstName: firstName,
+                  lastName: lastName,
+                  email: response.email,
+                  userType: userType,
+                };
+                setUserInfo(userInfo);
+                setIsAuthenticated(true);
+              }
+            }
+          ]
+        );
+        return;
+      } catch (error: any) {
+        console.error("Student login error:", error);
+        
+        let errorMessage = "Login failed. Please check your credentials.";
+        
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        Alert.alert("Login Error", errorMessage);
+        return;
+      }
     }
 
     const userInfo: UserInfo = {
