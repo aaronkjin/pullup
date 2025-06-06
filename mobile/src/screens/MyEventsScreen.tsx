@@ -73,15 +73,15 @@ const MyEventsScreen = () => {
       } else {
         // Extract org_id from auth token for organizations
         const token = await AuthTokenManager.getToken();
-        console.log('Current auth token for org:', token);
-        
-        if (token && token.startsWith('org_')) {
+        console.log("Current auth token for org:", token);
+
+        if (token && token.startsWith("org_")) {
           // Parse token format: org_${org_id}_${timestamp}
-          const parts = token.split('_');
+          const parts = token.split("_");
           if (parts.length >= 2) {
             const orgId = parseInt(parts[1]);
-            console.log('Extracted org_id:', orgId);
-            
+            console.log("Extracted org_id:", orgId);
+
             if (!isNaN(orgId)) {
               const data = await EventApi.getOrganizationEvents(orgId);
               setEvents(data);
@@ -89,8 +89,10 @@ const MyEventsScreen = () => {
             }
           }
         }
-        
-        console.log('Could not extract valid org_id from token, using empty array');
+
+        console.log(
+          "Could not extract valid org_id from token, using empty array"
+        );
         setEvents([]);
       }
     } catch (error) {
@@ -111,17 +113,19 @@ const MyEventsScreen = () => {
   const handlePullUp = async (eventId: string) => {
     try {
       // Find the current event to get its registration status
-      const currentEvent = events.find(e => e.id === eventId);
+      const currentEvent = events.find((e) => e.id === eventId);
       if (!currentEvent) return;
 
       // Optimistically update the event status
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount - 1 : event.pullUpCount + 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount - 1
+                  : event.pullUpCount + 1,
               }
             : event
         )
@@ -129,24 +133,28 @@ const MyEventsScreen = () => {
 
       // Make the API call with current registration status
       await EventApi.togglePullUp(eventId, currentEvent.userPulledUp);
-      
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
-      
+
       // Revert the optimistic update on error
-      setEvents(prevEvents => 
-        prevEvents.map((event) => 
-          event.id === eventId 
-            ? { 
-                ...event, 
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId
+            ? {
+                ...event,
                 userPulledUp: !event.userPulledUp,
-                pullUpCount: event.userPulledUp ? event.pullUpCount + 1 : event.pullUpCount - 1
+                pullUpCount: event.userPulledUp
+                  ? event.pullUpCount + 1
+                  : event.pullUpCount - 1,
               }
             : event
         )
       );
-      
-      Alert.alert("Error", "Failed to update event registration. Please try again.");
+
+      Alert.alert(
+        "Error",
+        "Failed to update event registration. Please try again."
+      );
     }
   };
 
@@ -159,6 +167,18 @@ const MyEventsScreen = () => {
       // Students see modal (to be implemented)
       console.log("Show student event modal for:", eventId);
     }
+  };
+
+  // Handle delete event (for organizations)
+  const handleDeleteEvent = (eventId: string) => {
+    // Remove the event from the local state to clear it from screen
+    setEvents((prevEvents) =>
+      prevEvents.filter((event) => event.id !== eventId)
+    );
+
+    // TODO: Add API call to delete event from server
+    // await EventApi.deleteEvent(eventId);
+    console.log("Event deleted:", eventId);
   };
 
   // Handle logout
@@ -221,6 +241,9 @@ const MyEventsScreen = () => {
               event={item}
               onPress={handleEventPress}
               onPullUp={userType === "student" ? handlePullUp : undefined}
+              onDelete={
+                userType === "organization" ? handleDeleteEvent : undefined
+              }
               userType={userType}
             />
           )}
