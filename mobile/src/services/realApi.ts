@@ -398,7 +398,40 @@ export const EventApi = {
 
   // Delete an event
   deleteEvent: async (id: string): Promise<void> => {
-    return await del<void>(ENDPOINTS.event(id));
+    try {
+      console.log('Deleting event with ID:', id);
+      
+      const response = await del<any>(ENDPOINTS.events, {
+        data: { event_id: parseInt(id) } // DELETE requests send data in the body via config.data
+      });
+      
+      console.log('Event deletion API response:', response);
+      console.log('Event deleted successfully');
+      
+    } catch (error: any) {
+      console.error('Error deleting event:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
+      
+      // Handle specific error responses
+      if (error.response?.status === 404) {
+        throw new Error("Event not found");
+      } else if (error.response?.status === 400) {
+        throw new Error("Invalid event ID");
+      }
+      
+      // Extract error message from response if available
+      let errorMessage = "Failed to delete event";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
   },
 
   // Toggle pull up for an event (register/unregister student)

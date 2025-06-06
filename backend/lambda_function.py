@@ -58,6 +58,8 @@ def lambda_handler(event, context):
                 return get_all_events()
             elif http_method == 'POST':
                 return create_event(body)
+            elif http_method == 'DELETE':
+                return delete_event(body)
     elif path == '/students/create':
         if http_method == 'POST':
             return create_student(body)
@@ -448,7 +450,7 @@ def pu_student_for_event(body):
             body['student_id'],
             body['event_id'],
             body.get('reg_code'),
-            body.get('registered', True)
+            body.get('registered', False)
         ))
         
         # Update participant count
@@ -635,3 +637,52 @@ def unregister_student_from_event(body):
     except Exception as e:
         print(f"Error unregistering student: {str(e)}")
         return build_response(500, {'error': 'Failed to unregister student'})
+
+def delete_event(body):
+    try:
+        # Validate required parameters
+        if not body.get('event_id'):
+            return build_response(400, {'error': 'event_id is required'})
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if event exists
+        check_query = """
+            SELECT event_id FROM Events 
+            WHERE event_id = %s
+        """
+        cursor.execute(check_query, (body['event_id'],))
+        event = cursor.fetchone()
+        
+        if not event:
+            cursor.close()
+            conn.close()
+            return build_response(404, {'error': 'Event not found'})
+        
+        # Delete student registrations first (cascading delete)
+        delete_registrations_query = """
+            DELETE FROM Students_Events 
+            WHERE event_id = %s
+        """
+        cursor.execute(delete_registrations_query, (body['event_id'],))
+        
+        # Delete the event
+        delete_event_query = """
+            DELETE FROM Events 
+            WHERE event_id = %s
+        """
+        cursor.execute(delete_event_query, (body['event_id'],))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return build_response(200, {
+            'message': 'Event deleted successfully',
+            'event_id': body['event_id']
+        })
+        
+    except Exception as e:
+        print(f"Error deleting event: {str(e)}")
+        return build_response(500, {'error': 'Failed to delete event'})
