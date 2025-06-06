@@ -8,6 +8,8 @@ Student-Event Relationship Endpoints
 
 POST /students-events/pu - Register a student for an event
     -student_id,event_id,reg_code
+DELETE /students-events/pu - unregister
+    -student_id,event_id
 POST /students-events/student - Get all events for a specific student
     -student_id
 POST /students-events/event - Get all students registered for a specific event

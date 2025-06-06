@@ -2,11 +2,11 @@ import { Event, User, QRWristband } from '../types';
 import { get, post, put, del } from './httpClient';
 import { AuthTokenManager } from '../config/api';
 
-// Backend API response types (different from our frontend types)
+// Backend API response types (matching actual API structure)
 interface BackendEvent {
-  event_id?: number;
-  org_id?: number;
-  name?: string;
+  event_id: number;
+  org_id: number;
+  name: string;
   event_date?: string;
   event_time?: string;
   location?: string;
@@ -16,51 +16,130 @@ interface BackendEvent {
   is_public?: boolean;
   passcode?: string | null;
   created_at?: string;
-  // Legacy fields for backward compatibility
-  eventId?: string;
-  orgId?: string;
-  orgName?: string;
-  timeLocation?: string;
-  pullUpCount?: number;
-  userPulledUp?: boolean;
-  isPrivate?: boolean;
-  imageUrl?: string;
+  org_name?: string;
 }
 
 // Transform backend event response to frontend Event type
 const transformBackendEvent = (backendEvent: BackendEvent): Event => {
-  // Handle both new API format and legacy format
-  const eventId = backendEvent.event_id || backendEvent.eventId || String(Date.now());
-  const orgId = backendEvent.org_id || backendEvent.orgId || '';
+  const eventId = backendEvent.event_id;
+  const orgId = backendEvent.org_id;
   const name = backendEvent.name || 'Untitled Event';
   const description = backendEvent.description || '';
-  const location = backendEvent.location || backendEvent.timeLocation || 'TBD';
-  const imageUrl = backendEvent.image_url || backendEvent.imageUrl || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94';
-  const isPublic = backendEvent.is_public !== undefined ? backendEvent.is_public : !backendEvent.isPrivate;
-  const participantCount = backendEvent.participant_count || backendEvent.pullUpCount || 0;
+  const location = backendEvent.location || 'TBD';
+  const imageUrl = backendEvent.image_url || 'https://images.unsplash.com/photo-1523580494863-6f3031224c94';
+  const isPublic = backendEvent.is_public !== undefined ? backendEvent.is_public : true;
+  const participantCount = backendEvent.participant_count || 0;
   const createdAt = backendEvent.created_at || String(Math.floor(Date.now() / 1000));
+  const organizerName = backendEvent.org_name || 'Organization';
   
   // Construct date time from separate date and time fields
   let dateTime = new Date().toISOString();
   if (backendEvent.event_date && backendEvent.event_time) {
     try {
-      // Convert "12/12/2022" and "12:12 AM" to ISO string
+      console.log('Parsing date/time:', backendEvent.event_date, backendEvent.event_time);
+      
+      // Convert "12/12/2022" and "12:12AM" (no space) to ISO string
       const dateParts = backendEvent.event_date.split('/');
       if (dateParts.length === 3) {
-        const month = dateParts[0].padStart(2, '0');
-        const day = dateParts[1].padStart(2, '0');
-        const year = dateParts[2];
-        const dateStr = `${year}-${month}-${day}`;
+        const month = parseInt(dateParts[0]) - 1; // JavaScript months are 0-based
+        const day = parseInt(dateParts[1]);
+        const year = parseInt(dateParts[2]);
         
-        // Parse time (handle AM/PM)
-        let timeStr = backendEvent.event_time;
-        const date = new Date(`${dateStr} ${timeStr}`);
+        // Parse time manually - handle formats like "12:12AM" and "9:00PM"
+        let timeStr = backendEvent.event_time.trim();
+        console.log('Original time string:', timeStr);
+        console.log('Time string length:', timeStr.length);
+        console.log('Time string characters:', timeStr.split('').map(c => `'${c}' (${c.charCodeAt(0)})`));
+        
+        // Extract time components manually - make regex more flexible
+        const timeRegex = /^(\d{1,2}):(\d{1,2})\s*(AM|PM)$/i;
+        const timeMatch = timeStr.match(timeRegex);
+        
+        console.log('Regex match result:', timeMatch);
+        
+        if (timeMatch) {
+          let hours = parseInt(timeMatch[1]);
+          const minutes = parseInt(timeMatch[2]);
+          const period = timeMatch[3].toUpperCase();
+          
+          console.log('Parsed time components:', { hours, minutes, period });
+          
+          // Convert to 24-hour format
+          if (period === 'AM') {
+            if (hours === 12) hours = 0; // 12:xx AM = 0:xx
+          } else { // PM
+            if (hours !== 12) hours += 12; // x:xx PM = (x+12):xx, except 12:xx PM stays 12:xx
+          }
+          
+          console.log('Converted to 24-hour format:', { hours, minutes });
+          
+          // Create date object with manual components
+          const date = new Date(year, month, day, hours, minutes, 0, 0);
+          console.log('Created date object:', date);
+          
+          if (!isNaN(date.getTime())) {
+            dateTime = date.toISOString();
+            console.log('Successfully parsed to ISO:', dateTime);
+          } else {
+            console.warn('Manual date construction failed, using current time as fallback');
+          }
+        } else {
+          console.warn('Time string does not match expected format (H:MM AM/PM)');
+          console.log('Trying alternative parsing approaches...');
+          
+          const altPatterns = [
+            /^(\d{1,2}):(\d{1,2})(AM|PM)$/i,  // No space before AM/PM
+            /^(\d{1,2}):(\d{1,2})\s+(AM|PM)$/i, // Multiple spaces
+            /^(\d{1,2}):(\d{1,2})\s*(A\.M\.|P\.M\.)$/i, // With periods
+          ];
+          
+          for (let i = 0; i < altPatterns.length; i++) {
+            const altMatch = timeStr.match(altPatterns[i]);
+            console.log(`Alternative pattern ${i + 1} result:`, altMatch);
+            
+            if (altMatch) {
+              let hours = parseInt(altMatch[1]);
+              const minutes = parseInt(altMatch[2]);
+              const period = altMatch[3].toUpperCase().replace(/\./g, ''); // Remove periods
+              
+              console.log('Alternative parsed components:', { hours, minutes, period });
+              
+              // Convert to 24-hour format
+              if (period === 'AM') {
+                if (hours === 12) hours = 0;
+              } else { // PM
+                if (hours !== 12) hours += 12;
+              }
+              
+              const date = new Date(year, month, day, hours, minutes, 0, 0);
+              if (!isNaN(date.getTime())) {
+                dateTime = date.toISOString();
+                console.log('Successfully parsed with alternative pattern to ISO:', dateTime);
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to parse event date/time:', error);
+      // Keep default current time
+    }
+  } else if (backendEvent.event_date) {
+    // If only date is provided, use it with default time
+    try {
+      const dateParts = backendEvent.event_date.split('/');
+      if (dateParts.length === 3) {
+        const month = parseInt(dateParts[0]) - 1; // JavaScript months are 0-based
+        const day = parseInt(dateParts[1]);
+        const year = parseInt(dateParts[2]);
+        const date = new Date(year, month, day, 12, 0, 0, 0); // Default to noon
         if (!isNaN(date.getTime())) {
           dateTime = date.toISOString();
         }
       }
     } catch (error) {
-      console.warn('Failed to parse event date/time:', error);
+      console.warn('Failed to parse event date:', error);
     }
   }
 
@@ -69,16 +148,14 @@ const transformBackendEvent = (backendEvent: BackendEvent): Event => {
     title: name,
     description: description,
     organizerId: String(orgId),
-    organizerName: backendEvent.orgName || 'Organization',
-    organizerImageUrl: backendEvent.orgName 
-      ? `https://logo.clearbit.com/${backendEvent.orgName.toLowerCase().replace(/\s+/g, '')}.edu`
-      : 'https://logo.clearbit.com/stanford.edu',
+    organizerName: organizerName,
+    organizerImageUrl: 'https://logo.clearbit.com/stanford.edu',
     location: location,
     dateTime: dateTime,
     imageUrl: imageUrl,
     isPrivate: !isPublic,
     pullUpCount: participantCount,
-    userPulledUp: backendEvent.userPulledUp || false,
+    userPulledUp: false, // This will be set based on student registration status
     eventPassword: backendEvent.passcode || undefined,
     created_at: createdAt,
   };
@@ -118,6 +195,7 @@ const ENDPOINTS = {
   
   // Student Events
   studentEvents: '/students-events/student',
+  studentEventPullUp: '/students-events/pu',
   
   // Organization Events
   orgEvents: '/orgs/org',
@@ -155,7 +233,55 @@ export const EventApi = {
       // Handle the API response structure: { "events": [...] }
       if (response && typeof response === 'object' && Array.isArray(response.events)) {
         console.log('Found events array with length:', response.events.length);
-        return response.events.map(transformBackendEvent);
+        
+        // Transform backend events to frontend format
+        let events = response.events.map(transformBackendEvent);
+        
+        // Check if user is logged in as a student
+        try {
+          const token = await AuthTokenManager.getToken();
+          
+          if (token && token.startsWith('student_')) {
+            // Parse token format: student_${student_id}_${timestamp}
+            const parts = token.split('_');
+            if (parts.length >= 2) {
+              const studentId = parseInt(parts[1]);
+              
+              if (!isNaN(studentId)) {
+                console.log('Fetching registered events for student:', studentId);
+                
+                // Get student's registered events
+                const registeredEventsResponse = await post<any>(ENDPOINTS.studentEvents, { student_id: studentId });
+                
+                if (registeredEventsResponse && Array.isArray(registeredEventsResponse.events)) {
+                  console.log('Student is registered for', registeredEventsResponse.events.length, 'events');
+                  
+                  // Create a set of registered event IDs for quick lookup
+                  const registeredEventIds = new Set(
+                    registeredEventsResponse.events.map((event: any) => String(event.event_id))
+                  );
+                  
+                  console.log('Registered event IDs:', Array.from(registeredEventIds));
+                  
+                  // Mark events as userPulledUp if student is registered (instead of filtering them out)
+                  events = events.map((event: Event) => ({
+                    ...event,
+                    userPulledUp: registeredEventIds.has(event.id)
+                  }));
+                  
+                  console.log('Updated events with registration status');
+                }
+              }
+            }
+          } else {
+            console.log('User not logged in as student, showing all events');
+          }
+        } catch (registrationError) {
+          console.warn('Failed to fetch student registration status:', registrationError);
+          // Continue showing all events if we can't check registration status
+        }
+        
+        return events;
       }
       
       console.log('No events array found in response, returning empty array');
@@ -275,10 +401,10 @@ export const EventApi = {
     return await del<void>(ENDPOINTS.event(id));
   },
 
-  // Toggle pull up for an event (new method)
-  togglePullUp: async (id: string, password?: string): Promise<Event> => {
+  // Toggle pull up for an event (register/unregister student)
+  togglePullUp: async (id: string, currentlyRegistered: boolean, password?: string): Promise<Event> => {
     try {
-      // Extract student_id from auth token for private event registration
+      // Extract student_id from auth token
       const token = await AuthTokenManager.getToken();
       
       if (!token || !token.startsWith("student_")) {
@@ -296,45 +422,84 @@ export const EventApi = {
         throw new Error("Invalid student ID");
       }
 
-      // Use the students-events/pu endpoint for registering
+      // API request structure
       const requestData = {
         student_id: studentId,
         event_id: parseInt(id),
-        reg_code: password, // Send password as reg_code for private events
-        registered: true
+        reg_code: password || null
       };
 
-      console.log('Calling pull up API with data:', requestData);
-
-      const response = await post<any>('/students-events/pu', requestData);
+      let response: any;
+      
+      if (currentlyRegistered) {
+        // Student is currently registered, so unregister (DELETE)
+        console.log('Unregistering student with data:', requestData);
+        response = await del<any>(ENDPOINTS.studentEventPullUp, {
+          data: requestData // DELETE requests send data in the body via config.data
+        });
+      } else {
+        // Student is not registered, so register (POST)
+        console.log('Registering student with data:', requestData);
+        response = await post<any>(ENDPOINTS.studentEventPullUp, requestData);
+      }
       
       console.log('Pull up API response:', response);
+      console.log('Response message:', response?.message);
 
-      // After successful registration, fetch the updated event data
-      // For now, return a mock updated event - in production, you'd fetch the latest event data
-      const events = await EventApi.getEvents();
-      const updatedEvent = events.find(event => event.id === id);
-      
-      if (updatedEvent) {
+      // Handle the expected response
+      if (response && typeof response === 'object' && response.message) {
+        const action = currentlyRegistered ? 'unregistered' : 'registered';
+        console.log(`Student ${action} successfully:`, response.message);
+        
+        // Return a simple success event object
         return {
-          ...updatedEvent,
-          userPulledUp: true,
-          pullUpCount: updatedEvent.pullUpCount + 1
+          id: id,
+          title: 'Event Updated',
+          description: '',
+          organizerId: '',
+          organizerName: 'Organization',
+          organizerImageUrl: 'https://logo.clearbit.com/stanford.edu',
+          location: 'TBD',
+          dateTime: new Date().toISOString(),
+          imageUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94',
+          isPrivate: false,
+          pullUpCount: 1,
+          userPulledUp: !currentlyRegistered, // Toggle the status
+          eventPassword: password,
+          created_at: String(Math.floor(Date.now() / 1000)),
         };
       }
       
-      throw new Error("Event not found after registration");
+      throw new Error("Unexpected response format from pull up API");
       
     } catch (error: any) {
-      console.error('Pull up error:', error);
+      console.error('Pull up error details:', error);
       console.error('Error response:', error.response);
       console.error('Error response data:', error.response?.data);
+      console.error('Error message:', error.message);
+      console.error('Error status:', error.response?.status);
       
+      // Handle specific error responses
       if (error.response?.status === 403) {
         throw new Error("Invalid password for this private event");
+      } else if (error.response?.status === 400) {
+        throw new Error("Invalid request - check event ID and student status");
+      } else if (error.response?.status === 404) {
+        throw new Error("Registration not found");
+      } else if (error.response?.status === 409) {
+        throw new Error("Already registered for this event");
       }
       
-      throw error;
+      // Extract error message from response if available
+      const action = currentlyRegistered ? 'unregister from' : 'register for';
+      let errorMessage = `Failed to ${action} event`;
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   },
 
@@ -353,7 +518,13 @@ export const EventApi = {
       if (response && typeof response === 'object' && Array.isArray(response.events)) {
         console.log('Found user events array with length:', response.events.length);
         console.log('Events count:', response.count);
-        return response.events.map(transformBackendEvent);
+        
+        // Transform and mark all events as userPulledUp since these are the student's registered events
+        const transformedEvents = response.events.map(transformBackendEvent);
+        return transformedEvents.map((event: Event) => ({
+          ...event,
+          userPulledUp: true // Student is registered for all events in their "My Events"
+        }));
       }
       
       console.log('No events array found in user events response, returning empty array');

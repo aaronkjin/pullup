@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -109,12 +110,43 @@ const MyEventsScreen = () => {
   // Handle pull up (for students viewing their registered events)
   const handlePullUp = async (eventId: string) => {
     try {
-      const updatedEvent = await EventApi.togglePullUp(eventId);
-      setEvents(
-        events.map((event) => (event.id === eventId ? updatedEvent : event))
+      // Find the current event to get its registration status
+      const currentEvent = events.find(e => e.id === eventId);
+      if (!currentEvent) return;
+
+      // Optimistically update the event status
+      setEvents(prevEvents => 
+        prevEvents.map((event) => 
+          event.id === eventId 
+            ? { 
+                ...event, 
+                userPulledUp: !event.userPulledUp,
+                pullUpCount: event.userPulledUp ? event.pullUpCount - 1 : event.pullUpCount + 1
+              }
+            : event
+        )
       );
+
+      // Make the API call with current registration status
+      await EventApi.togglePullUp(eventId, currentEvent.userPulledUp);
+      
     } catch (error) {
       console.error("Failed to toggle pull up:", error);
+      
+      // Revert the optimistic update on error
+      setEvents(prevEvents => 
+        prevEvents.map((event) => 
+          event.id === eventId 
+            ? { 
+                ...event, 
+                userPulledUp: !event.userPulledUp,
+                pullUpCount: event.userPulledUp ? event.pullUpCount + 1 : event.pullUpCount - 1
+              }
+            : event
+        )
+      );
+      
+      Alert.alert("Error", "Failed to update event registration. Please try again.");
     }
   };
 

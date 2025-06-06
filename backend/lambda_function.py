@@ -76,6 +76,8 @@ def lambda_handler(event, context):
     elif path == '/students-events/pu':
         if http_method == 'POST':
             return pu_student_for_event(body)
+        elif http_method == 'DELETE':
+            return unregister_student_from_event(body)
     elif path == '/students-events/student':
         if http_method == 'POST':
             return get_events_for_student(body)
@@ -112,9 +114,12 @@ def get_all_events():
         cursor = conn.cursor()
 
         query = """
-            SELECT *
-            FROM Events 
-            ORDER BY created_at DESC
+            SELECT e.event_id, e.org_id, e.name, e.event_date, e.event_time,
+                   e.location, e.description, e.participant_count, e.image_url,
+                   e.is_public, e.passcode, e.created_at, o.name as org_name
+            FROM Events e
+            LEFT JOIN Orgs o ON e.org_id = o.org_id
+            ORDER BY e.created_at DESC
         """
         
         cursor.execute(query)
@@ -134,7 +139,8 @@ def get_all_events():
                 'image_url': event[8],
                 'is_public': event[9],
                 'passcode': event[10],
-                'created_at': event[11]
+                'created_at': event[11],
+                'org_name': event[12] or 'Unknown Organization'
             }
             
             event_dict['score'] = calculate_event_score(
@@ -345,12 +351,13 @@ def get_events_for_org(body):
         cursor = conn.cursor()
         
         query = """
-            SELECT event_id, org_id, name, event_date, event_time,
-                   location, description, participant_count, image_url,
-                   is_public, passcode, created_at
-            FROM Events 
-            WHERE org_id = %s
-            ORDER BY created_at DESC
+            SELECT e.event_id, e.org_id, e.name, e.event_date, e.event_time,
+                   e.location, e.description, e.participant_count, e.image_url,
+                   e.is_public, e.passcode, e.created_at, o.name as org_name
+            FROM Events e
+            LEFT JOIN Orgs o ON e.org_id = o.org_id
+            WHERE e.org_id = %s
+            ORDER BY e.created_at DESC
         """
         
         cursor.execute(query, (body['org_id'],))
@@ -370,7 +377,8 @@ def get_events_for_org(body):
                 'image_url': event[8],
                 'is_public': event[9],
                 'passcode': event[10],
-                'created_at': event[11]
+                'created_at': event[11],
+                'org_name': event[12] or 'Unknown Organization'
             }
             event_list.append(event_dict)
         
@@ -470,9 +478,10 @@ def get_events_for_student(body):
         query = """
             SELECT e.event_id, e.org_id, e.name, e.event_date, e.event_time,
                    e.location, e.description, e.participant_count, e.image_url,
-                   e.is_public, e.created_at, se.reg_code, se.registered
+                   e.is_public, e.created_at, se.reg_code, se.registered, o.name as org_name
             FROM Events e
             JOIN Students_Events se ON e.event_id = se.event_id
+            LEFT JOIN Orgs o ON e.org_id = o.org_id
             WHERE se.student_id = %s
             ORDER BY e.created_at DESC
         """
@@ -495,7 +504,8 @@ def get_events_for_student(body):
                 'is_public': event[9],
                 'created_at': event[10],
                 'reg_code': event[11],
-                'registered': event[12]
+                'registered': event[12],
+                'org_name': event[13] or 'Unknown Organization'
             }
             event_list.append(event_dict)
         
@@ -583,3 +593,45 @@ def update_student_event_registration(body):
     except Exception as e:
         print(f"Error updating registration: {str(e)}")
         return build_response(500, {'error': 'Failed to update registration'})
+
+def unregister_student_from_event(body):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if the registration exists
+        check_query = """
+            SELECT 1 FROM Students_Events 
+            WHERE student_id = %s AND event_id = %s
+        """
+        cursor.execute(check_query, (body['student_id'], body['event_id']))
+        
+        if not cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return build_response(404, {'error': 'Registration not found'})
+
+        # Delete the registration
+        delete_query = """
+            DELETE FROM Students_Events 
+            WHERE student_id = %s AND event_id = %s
+        """
+        cursor.execute(delete_query, (body['student_id'], body['event_id']))
+        
+        # Decrement participant count
+        update_query = """
+            UPDATE Events 
+            SET participant_count = GREATEST(participant_count - 1, 0)
+            WHERE event_id = %s
+        """
+        cursor.execute(update_query, (body['event_id'],))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return build_response(200, {'message': 'Student unregistered successfully'})
+        
+    except Exception as e:
+        print(f"Error unregistering student: {str(e)}")
+        return build_response(500, {'error': 'Failed to unregister student'})
