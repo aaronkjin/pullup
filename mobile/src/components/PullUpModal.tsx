@@ -240,6 +240,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     maxHeight: "90%",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   eventImage: {
     width: "100%",
@@ -382,6 +390,8 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     gap: SPACING.m,
     backgroundColor: COLORS.background,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   cancelButton: {
     flex: 1,

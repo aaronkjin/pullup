@@ -1,6 +1,14 @@
 import React from "react";
-import { View, Text, Modal, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, SPACING, FONT } from "../utils/theme";
 
 interface SettingsModalProps {
@@ -14,6 +22,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onLogout,
 }) => {
+  const insets = useSafeAreaInsets();
+
   const handleLogout = () => {
     onLogout();
     onClose();
@@ -23,29 +33,32 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Settings</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={24} color={COLORS.secondaryText} />
-            </TouchableOpacity>
-          </View>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable>
+          <View style={[styles.container, { paddingTop: insets.top }]}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Settings</Text>
+            </View>
 
-          <View style={styles.content}>
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={handleLogout}
-            >
-              <Ionicons name="log-out-outline" size={20} color={COLORS.error} />
-              <Text style={styles.logoutText}>Log out</Text>
-            </TouchableOpacity>
+            <View style={styles.content}>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogout}
+              >
+                <Ionicons
+                  name="log-out-outline"
+                  size={20}
+                  color={COLORS.error}
+                />
+                <Text style={styles.logoutText}>Log out</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };
@@ -54,14 +67,12 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-start",
   },
   container: {
     backgroundColor: COLORS.background,
-    borderRadius: 20,
-    width: "80%",
-    maxWidth: 300,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: {
@@ -73,7 +84,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     padding: SPACING.m,
     borderBottomWidth: 1,
@@ -84,25 +95,20 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: COLORS.text,
   },
-  closeButton: {
-    padding: SPACING.xs,
-  },
   content: {
     padding: SPACING.m,
   },
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: SPACING.m,
-    paddingHorizontal: SPACING.s,
+    justifyContent: "center",
+    padding: SPACING.m,
     borderRadius: 12,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: COLORS.lightRed,
   },
   logoutText: {
     fontSize: FONT.sizes.m,
-    fontWeight: "500",
+    fontWeight: "600",
     color: COLORS.error,
     marginLeft: SPACING.s,
   },
