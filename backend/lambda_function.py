@@ -70,6 +70,9 @@ def lambda_handler(event, context):
     elif path == '/orgs/login':
         if http_method == 'POST':
             return check_org_password(body)
+    elif path == '/orgs/org':
+        if http_method == 'POST':
+            return get_events_for_org(body)
     elif path == '/students-events/pu':
         if http_method == 'POST':
             return pu_student_for_event(body)
@@ -336,7 +339,52 @@ def check_org_password(body):
         print(f"Error checking password: {str(e)}")
         return build_response(500, {'error': 'Failed to check password'})
 
-
+def get_events_for_org(body):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT event_id, org_id, name, event_date, event_time,
+                   location, description, participant_count, image_url,
+                   is_public, passcode, created_at
+            FROM Events 
+            WHERE org_id = %s
+            ORDER BY created_at DESC
+        """
+        
+        cursor.execute(query, (body['org_id'],))
+        events = cursor.fetchall()
+        
+        event_list = []
+        for event in events:
+            event_dict = {
+                'event_id': event[0],
+                'org_id': event[1],
+                'name': event[2],
+                'event_date': event[3],
+                'event_time': event[4],
+                'location': event[5],
+                'description': event[6],
+                'participant_count': event[7] or 0,
+                'image_url': event[8],
+                'is_public': event[9],
+                'passcode': event[10],
+                'created_at': event[11]
+            }
+            event_list.append(event_dict)
+        
+        cursor.close()
+        conn.close()
+        
+        return build_response(200, {
+            'events': event_list,
+            'count': len(event_list)
+        })
+        
+    except Exception as e:
+        print(f"Error fetching org events: {str(e)}")
+        return build_response(500, {'error': 'Failed to fetch org events'})
 
 def pu_student_for_event(body):
     try:
@@ -471,6 +519,7 @@ def get_students_for_event(body):
     except Exception as e:
         print(f"Error fetching event students: {str(e)}")
         return build_response(500, {'error': 'Failed to fetch event students'})
+
 def update_student_event_registration(body):
     try:
 
