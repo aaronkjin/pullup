@@ -10,9 +10,11 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Ionicons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { EventApi } from "../services/apiProvider";
 import { COLORS, SPACING, FONT } from "../utils/theme";
@@ -22,10 +24,138 @@ const CreateEventScreen = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [dateTime, setDateTime] = useState("");
+
+  // Date/Time state
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date(Date.now() + 60 * 60 * 1000)); // 1 hour later
+  const [activePicker, setActivePicker] = useState<
+    "startDate" | "startTime" | "endDate" | "endTime" | null
+  >(null);
+
   const [isPrivate, setIsPrivate] = useState(false);
   const [eventPassword, setEventPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Format time for display
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Format date/time for backend
+  const formatDateTimeForBackend = (date: Date, allDay: boolean) => {
+    if (allDay) {
+      return date.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
+    }
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Picker visibility with toggle behavior
+  const togglePicker = (
+    pickerType: "startDate" | "startTime" | "endDate" | "endTime"
+  ) => {
+    if (activePicker === pickerType) {
+      setActivePicker(null); // Close if same picker is tapped
+    } else {
+      setActivePicker(pickerType); // Open new picker + close any existing one
+    }
+  };
+
+  // Date/time picker changes
+  const onStartDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setActivePicker(null);
+    }
+    if (selectedDate) {
+      setStartDate(selectedDate);
+      // If end date is before start date, update it
+      if (selectedDate > endDate) {
+        setEndDate(new Date(selectedDate.getTime() + 60 * 60 * 1000));
+      }
+    }
+  };
+
+  const onStartTimeChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setActivePicker(null);
+    }
+    if (selectedDate) {
+      const newStartDate = new Date(startDate);
+      newStartDate.setHours(selectedDate.getHours());
+      newStartDate.setMinutes(selectedDate.getMinutes());
+      setStartDate(newStartDate);
+
+      // If end time is before start time on same day, update it
+      if (
+        formatDate(newStartDate) === formatDate(endDate) &&
+        newStartDate >= endDate
+      ) {
+        const newEndDate = new Date(newStartDate.getTime() + 60 * 60 * 1000);
+        setEndDate(newEndDate);
+      }
+    }
+  };
+
+  const onEndDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setActivePicker(null);
+    }
+    if (selectedDate) {
+      setEndDate(selectedDate);
+    }
+  };
+
+  const onEndTimeChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      setActivePicker(null);
+    }
+    if (selectedDate) {
+      const newEndDate = new Date(endDate);
+      newEndDate.setHours(selectedDate.getHours());
+      newEndDate.setMinutes(selectedDate.getMinutes());
+      setEndDate(newEndDate);
+    }
+  };
+
+  // All-day toggle
+  const handleAllDayToggle = (value: boolean) => {
+    setIsAllDay(value);
+    setActivePicker(null); // Close any open pickers
+    if (value) {
+      // Set start to beginning of day, end to end of day
+      const newStartDate = new Date(startDate);
+      newStartDate.setHours(0, 0, 0, 0);
+      setStartDate(newStartDate);
+
+      const newEndDate = new Date(endDate);
+      newEndDate.setHours(23, 59, 59, 999);
+      setEndDate(newEndDate);
+    }
+  };
 
   // Generate random password for private events
   const generatePassword = () => {
@@ -49,7 +179,7 @@ const CreateEventScreen = () => {
 
   // Handle create event
   const handleCreateEvent = async () => {
-    if (!title || !description || !location || !dateTime) {
+    if (!title || !description || !location) {
       Alert.alert(
         "Missing Information",
         "Please fill in all the required fields."
@@ -70,7 +200,14 @@ const CreateEventScreen = () => {
 
       // TODO: Need to upload image and get the URL here
       const imageUrl =
-        "https://images.unsplash.com/photo-1523580494863-6f3031224c94";
+        "https://images.unsplash.com/photo-1619139079319-ba9ff149a8c2?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
+      // Format date/time for backend
+      const formattedStartDateTime = formatDateTimeForBackend(
+        startDate,
+        isAllDay
+      );
+      const formattedEndDateTime = formatDateTimeForBackend(endDate, isAllDay);
 
       // TODO: Need to get org ID and org name from user profile
       const eventData = {
@@ -80,7 +217,10 @@ const CreateEventScreen = () => {
         organizerName: "Stanford Eats",
         organizerImageUrl: "https://logo.clearbit.com/stanford.edu",
         location,
-        dateTime,
+        dateTime: `${formattedStartDateTime} - ${formattedEndDateTime}`,
+        startDateTime: formattedStartDateTime,
+        endDateTime: formattedEndDateTime,
+        isAllDay,
         imageUrl,
         isPrivate,
         eventPassword: isPrivate ? eventPassword : undefined,
@@ -92,7 +232,9 @@ const CreateEventScreen = () => {
       setTitle("");
       setDescription("");
       setLocation("");
-      setDateTime("");
+      setIsAllDay(false);
+      setStartDate(new Date());
+      setEndDate(new Date(Date.now() + 60 * 60 * 1000));
       setIsPrivate(false);
       setEventPassword("");
 
@@ -164,16 +306,161 @@ const CreateEventScreen = () => {
             />
           </View>
 
-          {/* Date and Time */}
+          {/* Date and Time Section */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Date and Time *</Text>
-            <TextInput
-              style={styles.input}
-              value={dateTime}
-              onChangeText={setDateTime}
-              placeholder="MM/DD/YYYY HH:MM AM/PM"
-              placeholderTextColor={COLORS.secondaryText}
-            />
+
+            {/* All-day toggle */}
+            <View style={styles.switchContainer}>
+              <Text style={styles.switchLabel}>All-day</Text>
+              <Switch
+                value={isAllDay}
+                onValueChange={handleAllDayToggle}
+                trackColor={{ false: COLORS.border, true: COLORS.primary }}
+                thumbColor={COLORS.background}
+              />
+            </View>
+
+            {/* Start Date/Time */}
+            <View style={styles.dateTimeRow}>
+              <Text style={styles.dateTimeLabel}>Starts</Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.dateTimeButton,
+                  styles.dateTimeButtonFlex, // Always flex for date buttons
+                  activePicker === "startDate" && styles.dateTimeButtonActive,
+                ]}
+                onPress={() => togglePicker("startDate")}
+              >
+                <Text
+                  style={[
+                    styles.dateTimeText,
+                    activePicker === "startDate" && styles.dateTimeTextActive,
+                  ]}
+                >
+                  {formatDate(startDate)}
+                </Text>
+              </TouchableOpacity>
+
+              {!isAllDay && (
+                <TouchableOpacity
+                  style={[
+                    styles.dateTimeButton,
+                    styles.dateTimeButtonFlex, // Flex when both date and time are present
+                    activePicker === "startTime" && styles.dateTimeButtonActive,
+                  ]}
+                  onPress={() => togglePicker("startTime")}
+                >
+                  <Text
+                    style={[
+                      styles.dateTimeText,
+                      activePicker === "startTime" && styles.dateTimeTextActive,
+                    ]}
+                  >
+                    {formatTime(startDate)}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* End Date/Time */}
+            <View style={styles.dateTimeRow}>
+              <Text style={styles.dateTimeLabel}>Ends</Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.dateTimeButton,
+                  styles.dateTimeButtonFlex, // Always flex for date buttons
+                  activePicker === "endDate" && styles.dateTimeButtonActive,
+                ]}
+                onPress={() => togglePicker("endDate")}
+              >
+                <Text
+                  style={[
+                    styles.dateTimeText,
+                    activePicker === "endDate" && styles.dateTimeTextActive,
+                  ]}
+                >
+                  {formatDate(endDate)}
+                </Text>
+              </TouchableOpacity>
+
+              {!isAllDay && (
+                <TouchableOpacity
+                  style={[
+                    styles.dateTimeButton,
+                    styles.dateTimeButtonFlex, // Flex when both date and time are present
+                    activePicker === "endTime" && styles.dateTimeButtonActive,
+                  ]}
+                  onPress={() => togglePicker("endTime")}
+                >
+                  <Text
+                    style={[
+                      styles.dateTimeText,
+                      activePicker === "endTime" && styles.dateTimeTextActive,
+                    ]}
+                  >
+                    {formatTime(endDate)}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Single Date/Time Picker Container */}
+            {activePicker && (
+              <View style={styles.pickerContainer}>
+                {activePicker === "startDate" && (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onStartDateChange}
+                    minimumDate={new Date()}
+                    style={styles.picker}
+                    textColor={COLORS.text}
+                    accentColor={COLORS.primary}
+                  />
+                )}
+
+                {activePicker === "startTime" && (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="time"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onStartTimeChange}
+                    style={styles.picker}
+                    textColor={COLORS.text}
+                    accentColor={COLORS.primary}
+                  />
+                )}
+
+                {activePicker === "endDate" && (
+                  <DateTimePicker
+                    value={endDate}
+                    mode="date"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onEndDateChange}
+                    minimumDate={startDate}
+                    style={styles.picker}
+                    textColor={COLORS.text}
+                    accentColor={COLORS.primary}
+                  />
+                )}
+
+                {activePicker === "endTime" && (
+                  <DateTimePicker
+                    value={endDate}
+                    mode="time"
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={onEndTimeChange}
+                    style={styles.picker}
+                    textColor={COLORS.text}
+                    accentColor={COLORS.primary}
+                  />
+                )}
+              </View>
+            )}
           </View>
 
           {/* Privacy Setting */}
@@ -307,11 +594,84 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: SPACING.m,
+  },
+  switchLabel: {
+    fontSize: FONT.sizes.s,
+    color: COLORS.text,
+    fontWeight: "500",
   },
   switchSubtext: {
     fontSize: FONT.sizes.xs,
     color: COLORS.secondaryText,
     marginTop: 2,
+  },
+  dateTimeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACING.s,
+    gap: SPACING.s,
+  },
+  dateTimeLabel: {
+    fontSize: FONT.sizes.s,
+    color: COLORS.text,
+    width: 50,
+    fontWeight: "500",
+  },
+  dateTimeButton: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    paddingHorizontal: SPACING.m,
+    paddingVertical: SPACING.s,
+    minWidth: 100,
+    shadowColor: COLORS.text,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateTimeButtonFlex: {
+    flex: 1,
+    minWidth: 0, // Override minWidth when using flex
+  },
+  dateTimeButtonActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  dateTimeText: {
+    fontSize: FONT.sizes.s,
+    color: COLORS.text,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  dateTimeTextActive: {
+    color: COLORS.background,
+    fontWeight: "600",
+  },
+  pickerContainer: {
+    marginTop: SPACING.m,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: SPACING.m,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.text,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  picker: {
+    backgroundColor: "transparent",
+    height: 200,
   },
   passwordContainer: {
     flexDirection: "row",
