@@ -33,7 +33,7 @@ npm start
 
 ### For Students
 
-<img width="500" alt="Image" src="https://github.com/user-attachments/assets/2f912eb7-8613-4485-a394-9620e8bc48a4" />
+<img width="350" alt="Image" src="https://github.com/user-attachments/assets/2f912eb7-8613-4485-a394-9620e8bc48a4" />
 
 ### For Student Organizations
 
