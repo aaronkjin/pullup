@@ -29,6 +29,12 @@ npm i --legacy-peer-deps
 npm start
 ```
 
+## Walkthrough
+
+### For Students
+
+### For Student Organizations
+
 ## Developers
 
 [Aaron Jin](https://github.com/aaronkjin)
