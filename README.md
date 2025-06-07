@@ -39,6 +39,8 @@ npm start
 
 ### For Student Organizations
 
+<img width="400" alt="Image" src="https://github.com/user-attachments/assets/7e391f8e-83e5-440b-ab19-e0c7f2778456" />
+
 ## Developers
 
 [Aaron Jin](https://github.com/aaronkjin)
