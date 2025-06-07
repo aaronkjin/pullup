@@ -42,7 +42,7 @@ npm start
 <img width="405" alt="Image" src="https://github.com/user-attachments/assets/7e391f8e-83e5-440b-ab19-e0c7f2778456" />
 <img width="405" alt="Image" src="https://github.com/user-attachments/assets/5cac0285-948e-428b-b125-fce517d0f20c" />
 <img width="405" alt="Image" src="https://github.com/user-attachments/assets/2b9ed0a3-bd41-4b31-98ee-001eae4c0c7a" />
-<img width="405" alt="Image" src="https://github.com/user-attachments/assets/2d169582-1181-44f8-a2bb-aa64aeb54dd5" />
+<img width="405" alt="Image" src="https://github.com/user-attachments/assets/b8da104d-3af3-448e-a2f3-cdf559471d17" />
 
 ### Demo
 
