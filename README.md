@@ -35,6 +35,7 @@ npm start
 
 <img width="400" alt="Image" src="https://github.com/user-attachments/assets/2f912eb7-8613-4485-a394-9620e8bc48a4" />
 <img width="415" alt="Image" src="https://github.com/user-attachments/assets/9ce97761-26e5-4bd3-b7f5-62a79615ec3e" />
+<img width="400" alt="Image" src="https://github.com/user-attachments/assets/7a04f075-5c50-40cb-9b8e-63dff7a527a9" />
 
 ### For Student Organizations
 
