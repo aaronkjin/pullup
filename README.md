@@ -2,6 +2,8 @@
 
 A mobile bulletin-board app for Stanford students to discover campus events.
 
+<img width="1000" alt="Image" src="https://github.com/user-attachments/assets/1a4c1b2c-0509-4e09-8f59-87a46dea604a" />
+
 ## Overview
 
 Pullup is a platform where only officially recognized Stanford student orgs can post event announcements. The app features a dual-interface system: students can browse and "pull up" to events, while organizations can create events and manage participation. It includes password-protected private events and real-time participation tracking.
